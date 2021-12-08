@@ -10,8 +10,7 @@ const UserAdress = Schema({
         required: true
     },
 
-    address: [
-        {
+    address: {
             phone: {
                 type: Number,
                 required: true
@@ -37,7 +36,6 @@ const UserAdress = Schema({
                 required: true
             }
         }
-    ]
 }
 );
 
