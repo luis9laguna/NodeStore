@@ -25,9 +25,14 @@ const Order = Schema(
         },
         products: [
             {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'OrderItem',
-                required: true
+                product: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'Product',
+                    required: true
+                },
+                Quantity: {
+                    type: Number
+                }
             }
         ]
     },
@@ -35,8 +40,8 @@ const Order = Schema(
 );
 
 
-OrderSchema.method('toJSON', function(){
-    const {__v, _id, ...object} = this.toObject();
+OrderSchema.method('toJSON', function () {
+    const { __v, _id, ...object } = this.toObject();
 
     object.uid = _id;
     return object;
