@@ -34,9 +34,6 @@ const ProductSchema = Schema(
                 type: String
             }
         ],
-        likes: {
-            type: Number
-        },
         status: {
             type: Boolean,
             required: true,

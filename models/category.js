@@ -5,7 +5,6 @@ const { Schema, model } = require('mongoose');
 const CategorySchema = Schema(
     {
 
-
         name: {
             type: String,
             required: true
@@ -20,8 +19,7 @@ const CategorySchema = Schema(
         }
 
     },
-    { timestamps: true },
-    { collection: "categories"}
+    { timestamps: true }
 );
 
 CategorySchema.method('toJSON', function(){

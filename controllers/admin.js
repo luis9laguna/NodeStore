@@ -4,12 +4,13 @@ const bcrypt = require('bcryptjs');
 
 //CODE
 
-//GET
-const getUsers = async(req, res) =>{
+//GET ALL ADMINS
+
+const getAdmins = async(req, res) =>{
 
     try{
 
-        const users = await User.find({status: true, role: 'USER_ROLE'});
+        const users = await User.find({status: true, role: 'ADMIN_ROLE'});
     
         res.json({
             ok: true,
@@ -27,8 +28,9 @@ const getUsers = async(req, res) =>{
     }
 }
 
+
 //CREATE
-const createUser = async(req, res) => {
+const createAdmin = async(req, res) => {
 
     try{
         
@@ -50,6 +52,7 @@ const createUser = async(req, res) => {
         user.password = bcrypt.hashSync( password, salt );
 
         //SAVE USER
+        user.role = 'ADMIN_ROLE';
         await user.save();
         
         res.json({
@@ -70,7 +73,7 @@ const createUser = async(req, res) => {
 
 
 //UPDATE    
-const updateUser = async (req, res) =>{
+const updateAdmin = async (req, res) =>{
 
     try{
         
@@ -81,7 +84,7 @@ const updateUser = async (req, res) =>{
         if(!userDB){
             return res.status(404).json({
                 ok: false,
-                message: "User not found"
+                message: "Admin not found"
             });
         }
 
@@ -91,7 +94,7 @@ const updateUser = async (req, res) =>{
         
         res.json({
             ok:true,
-            user: userUpdate
+            admin: userUpdate
         });
 
     }catch(err){
@@ -104,8 +107,8 @@ const updateUser = async (req, res) =>{
 }
 
 
-//DELETE
-const deleteUser = async (req, res) => {
+//DELETE ADMIN
+const deleteAdmin = async (req, res) => {
 
     try{
         
@@ -121,8 +124,7 @@ const deleteUser = async (req, res) => {
         }
 
         //DELETE USER
-        userDB.status = false;
-        await User.findByIdAndUpdate( uid, userDB );
+        await User.findByIdAndDelete( uid );
         
         res.json({
             ok:true,
@@ -139,10 +141,9 @@ const deleteUser = async (req, res) => {
 }
 
 
-
 module.exports = {
-    getUsers,
-    createUser,
-    updateUser,
-    deleteUser
+    getAdmins,
+    createAdmin,
+    updateAdmin,
+    deleteAdmin
 }

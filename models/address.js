@@ -2,10 +2,10 @@
 const { Schema, model } = require('mongoose');
 
 //CODE
-const UserAdress = Schema({
+const Address = Schema({
 
     user: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
@@ -39,11 +39,11 @@ const UserAdress = Schema({
 }
 );
 
-UserAdress.method('toJSON', function () {
+Address.method('toJSON', function () {
     const { __v, _id, ...object } = this.toObject();
 
     object.uid = _id;
     return object;
 });
 
-module.exports = model('UserAdress', UserAdress);
+module.exports = model('Address', Address);

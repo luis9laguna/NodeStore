@@ -20,11 +20,16 @@ const UserSchema = Schema(
         role: {
             type: String,
             required: true,
-            default: 'USER_ROLE'
+            default: 'USER_ROLE',
+            enum: ['SUPER_ROLE', 'ADMIN_ROLE', 'USER_ROLE']
         },
         google: {
             type: Boolean,
             default: false
+        },
+        status: {
+            type: Boolean,
+            default: true
         }
     },
     { timestamps: true },

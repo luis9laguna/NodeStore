@@ -8,6 +8,8 @@ const { getCategory,
     createCategory,
     updateCategory,
     deleteCategory } = require('../controllers/categories');
+const { checkParams } = require('../middlewares/check-params');
+const { checkJWT, checkSuper } = require('../middlewares/check-jwt');
 
 //CODE
 const router = Router();
@@ -19,10 +21,20 @@ router.get('/', getCategory);
 router.get('/:id', getProductByCategory);
 
 //POST
-router.post('/', createCategory);
+router.post('/',
+    [ checkJWT,
+        checkSuper, 
+        check('name', 'Name is required').not().isEmpty(),
+        checkParams
+    ], 
+    createCategory);
 
 //PUT
-router.put('/:id', updateCategory);
+router.put('/:id',[ checkJWT,
+    checkSuper, 
+    check('name', 'Name is required').not().isEmpty(),
+    checkParams
+],  updateCategory);
 
 //DELETE
 router.delete('/:id', deleteCategory);

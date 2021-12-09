@@ -1,12 +1,12 @@
 //REQUIRED
-const mongoose = require('mongoose');
+const { Schema, model } = require('mongoose');
 
 //CODE
 const CartSchema = Schema(
     {
 
         user: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: 'User',
             required: true
         },
@@ -27,11 +27,11 @@ const CartSchema = Schema(
     { timestamps: true }
 );
 
-Cart.method('toJSON', function(){
+CartSchema.method('toJSON', function(){
     const {__v, _id, ...object} = this.toObject();
 
     object.uid = _id;
     return object;
 });
 
-module.exports = model('Cart', Cart);
+module.exports = model('Cart', CartSchema);

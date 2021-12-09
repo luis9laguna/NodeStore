@@ -1,5 +1,6 @@
 //REQUIRED
 const Product = require('../models/product');
+const User = require('../models/user');
 
 //CODE
 
@@ -7,7 +8,7 @@ const Product = require('../models/product');
 const getProduct = async (req, res) => {
     try {
 
-        const categories = await Product.find({"status": true}).sort('name');
+        const categories = await Product.find({ "status": true }).sort('name');
 
         res.json({
             ok: true,
@@ -107,7 +108,7 @@ const deleteProduct = async (req, res) => {
         }
 
         //DELETE CATEGORY
-        await Product.findByIdAndUpdate(uid, {status:false}, {new: true });
+        await Product.findByIdAndUpdate(uid, { status: false }, { new: true });
 
         res.json({
             ok: true,

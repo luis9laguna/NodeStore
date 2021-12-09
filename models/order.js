@@ -2,17 +2,17 @@
 const { Schema, model } = require('mongoose');
 
 //CODE
-const Order = Schema(
+const OrderSchema = Schema(
     {
 
         user: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: 'User',
             required: true
         },
-        userAddress: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'UserAdress',
+        address: {
+            type: Schema.Types.ObjectId,
+            ref: 'Address',
             required: true
         },
         total: {
@@ -21,16 +21,17 @@ const Order = Schema(
         },
         status: {
             type: String,
-            default: "pending"
+            default: "pending",
+            enum: ['pending','processing', 'shipping', 'delivered']
         },
         products: [
             {
                 product: {
-                    type: mongoose.Schema.Types.ObjectId,
+                    type: Schema.Types.ObjectId,
                     ref: 'Product',
                     required: true
                 },
-                Quantity: {
+                quantity: {
                     type: Number
                 }
             }
