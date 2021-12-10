@@ -4,21 +4,17 @@ const bcrypt = require('bcryptjs');
 
 //CODE
 
-//GET
-const getUsers = async(req, res) =>{
+//GET ALL USERS
+const getAllUsers = async (req, res) => {
+    try {
+        const allUsers = await User.countDocuments();
 
-    try{
-
-        const users = await User.find({status: true, role: 'USER_ROLE'});
-    
         res.json({
             ok: true,
-            users,
-            uid: req.uid
+            total: allUsers
         });
 
-    }catch(err){
-
+    } catch (err) {
         console.log(err);
         res.status(500).json({
             ok: false,
@@ -141,7 +137,7 @@ const deleteUser = async (req, res) => {
 
 
 module.exports = {
-    getUsers,
+    getAllUsers,
     createUser,
     updateUser,
     deleteUser

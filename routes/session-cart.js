@@ -4,17 +4,25 @@ const { check } = require('express-validator');
 
 //FUNCTIONS
 const { getCart,
+    getAllCarts,
     createCart,
     updateCart,
-    deleteCart } = require('../controllers/cart');
+    deleteCart } = require('../controllers/session-cart');
 const { checkParams } = require('../middlewares/check-params');
-const { checkJWT } = require('../middlewares/check-jwt');
+const { checkJWT, checkAdmin } = require('../middlewares/check-jwt');
+
 
 //CODE
 const router = Router();
 
 //GET
-router.get('/:id', getCart);
+router.get('/:id',checkJWT, getCart);
+
+//GET ALL
+router.get('/',[
+    checkJWT,
+    checkAdmin
+], getAllCarts);
 
 //POST
 router.post('/',

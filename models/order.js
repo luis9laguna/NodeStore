@@ -22,18 +22,13 @@ const OrderSchema = Schema(
         status: {
             type: String,
             default: "pending",
-            enum: ['pending','processing', 'shipping', 'delivered']
+            enum: ['pending', 'processing', 'shipping', 'delivered']
         },
-        products: [
+        orderItems: [
             {
-                product: {
-                    type: Schema.Types.ObjectId,
-                    ref: 'Product',
-                    required: true
-                },
-                quantity: {
-                    type: Number
-                }
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
             }
         ]
     },

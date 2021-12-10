@@ -10,7 +10,8 @@ const CategorySchema = Schema(
             required: true
         },
         image: {
-            type: String
+            type: String,
+            default: "https://res.cloudinary.com/faisca/image/upload/v1639115747/noimage_fa8wdn.jpg"
         },
         status: {
             type: Boolean,

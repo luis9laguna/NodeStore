@@ -18,6 +18,10 @@ const ProductSchema = Schema(
             type: String,
             required: true
         },
+        cost: {
+            type: Number,
+            required: true
+        },
         price: {
             type: Number,
             required: true
@@ -27,7 +31,8 @@ const ProductSchema = Schema(
             required: true
         },
         image: {
-            type: String
+            type: String,
+            default: "https://res.cloudinary.com/faisca/image/upload/v1639115747/noimage_fa8wdn.jpg"
         },
         galery: [
             {

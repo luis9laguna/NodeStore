@@ -21,20 +21,21 @@ router.get('/', getCategory);
 router.get('/:id', getProductByCategory);
 
 //POST
-router.post('/',
-    [ checkJWT,
-        checkSuper, 
-        check('name', 'Name is required').not().isEmpty(),
-        checkParams
-    ], 
+router.post('/', [
+    checkJWT,
+    checkSuper,
+    check('name', 'Name is required').not().isEmpty(),
+    checkParams
+],
     createCategory);
 
 //PUT
-router.put('/:id',[ checkJWT,
-    checkSuper, 
+router.put('/:id', [
+    checkJWT,
+    checkSuper,
     check('name', 'Name is required').not().isEmpty(),
     checkParams
-],  updateCategory);
+], updateCategory);
 
 //DELETE
 router.delete('/:id', deleteCategory);

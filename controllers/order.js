@@ -1,5 +1,6 @@
 //REQUIRED
 const Order = require('../models/order');
+const OrderItem = require('../models/order-item');
 
 //CODE
 
@@ -9,6 +10,13 @@ const getOrder = async (req, res) => {
 
         const uid = req.params.id;
         const order = await Order.findById(uid);
+
+        if(!order){
+            return res.status(404).json({
+                ok: false,
+                message: 'Order not found'
+            });
+        }
 
         res.json({
             ok: true,
@@ -27,7 +35,7 @@ const getOrder = async (req, res) => {
 const getAllOrders = async (req, res) => {
     try {
 
-        const orders = await Order.find();
+        const orders = await Order.find().sort({'createdAt': -1});
 
         res.json({
             ok: true,
@@ -43,10 +51,50 @@ const getAllOrders = async (req, res) => {
     }
 }
 
+//GET COMPLETE ORDERS
+
+const completeOrders = async (req, res) => {
+    try {
+
+        const asd = await Order.countDocuments({ "status": "delivered" })
+
+        res.json({
+            ok: true,
+            asd
+        });
+
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            message: "Error Unexpected, check logs"
+        });
+    }
+}
+
 
 //CREATE
 const createOrder = async (req, res) => {
     try {
+
+        // const orderItemsIds = Promise.all(req.body.orderItems.map(async (orderItem) =>{
+        //     let newOrderItem = new OrderItem({
+        //         quantity: orderItem.quantity,
+        //         product: orderItem.product
+        //     })
+    
+        //     newOrderItem = await newOrderItem.save();
+    
+        //     return newOrderItem._id;
+        // }))
+        // const orderItemsIdsResolved =  await orderItemsIds;
+    
+        // const totalPrices = await Promise.all(orderItemsIdsResolved.map(async (orderItemId)=>{
+        //     const orderItem = await OrderItem.findById(orderItemId).populate('product', 'price');
+        //     const totalPrice = orderItem.product.price * orderItem.quantity;
+        //     return totalPrice
+        // }))
 
         const order = new Order(req.body);
 
@@ -128,6 +176,7 @@ const deleteOrder = async (req, res) => {
 module.exports = {
     getOrder,
     getAllOrders,
+    completeOrders,
     createOrder,
     updateOrder,
     deleteOrder

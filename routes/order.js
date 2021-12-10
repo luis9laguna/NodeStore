@@ -5,6 +5,7 @@ const { check } = require('express-validator');
 //FUNCTIONS
 const { getOrder,
     getAllOrders,
+    completeOrders,
     createOrder,
     updateOrder,
     deleteOrder } = require('../controllers/order');
@@ -15,11 +16,19 @@ const { checkJWT, checkAdmin } = require('../middlewares/check-jwt');
 const router = Router();
 
 //GET
-router.get('/:id', checkAdmin, getOrder);
+router.get('/:id', checkJWT, getOrder);
+
+//GET COMPLETE ORDERS
+router.get('/total/a',[ 
+    checkJWT,
+    checkAdmin
+], completeOrders);
 
 //GET ALL
-
-router.get('/', getAllOrders);
+router.get('/', [ 
+    checkJWT,
+    checkAdmin
+], getAllOrders);
 
 //POST
 router.post('/',
@@ -34,12 +43,14 @@ router.post('/',
 
 //PUT
 router.put('/:id',
-[ checkAdmin,
+[ 
+    checkJWT,
+    checkAdmin,
     check('status', 'Status is required').not().isEmpty(),
     checkParams
 ], updateOrder);
 
-router.delete('/:id', deleteOrder)
+router.delete('/:id', deleteOrder);
 
 
 module.exports = router;

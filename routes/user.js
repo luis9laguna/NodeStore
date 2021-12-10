@@ -3,14 +3,16 @@ const { Router } = require('express');
 const { check } = require('express-validator');
 
 //FUNCTIONS
-const { getUsers, createUser, updateUser, deleteUser } = require('../controllers/user');
+const { getAllUsers, createUser, updateUser, deleteUser } = require('../controllers/user');
 const { checkParams } = require('../middlewares/check-params');
 const { checkJWT, checkSuper, checkAdmin } = require('../middlewares/check-jwt');
 //CODE
 const router = Router();
 
 //GET
-router.get('/', [checkJWT, checkAdmin], getUsers);
+router.get('/', [checkJWT, checkAdmin], getAllUsers);
+
+
 
 //POST
 router.post('/',

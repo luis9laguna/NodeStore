@@ -20,6 +20,7 @@ app.use( express.json() );
 //DATABASE
 dbConnection();
 
+
 //ROUTES
 
 app.use('/api/category', require('./routes/categories'));
@@ -29,10 +30,10 @@ app.use('/api/user', require('./routes/user'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/login', require('./routes/auth'));
 app.use('/api/address', require('./routes/address'));
-app.use('/api/cart', require('./routes/cart'));
+app.use('/api/cart', require('./routes/session-cart'));
 app.use('/api/order', require('./routes/order'));
 app.use('/api/like', require('./routes/like'));
-
+app.use('/api/upload', require('./routes/upload'));
 
 
 
