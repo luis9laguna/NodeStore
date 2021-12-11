@@ -27,7 +27,7 @@ app.use('/api/product', require('./routes/products'));
 app.use('/api/search', require('./routes/search'));
 app.use('/api/user', require('./routes/user'));
 app.use('/api/admin', require('./routes/admin'));
-app.use('/api/login', require('./routes/auth'));
+app.use('/api/auth', require('./routes/auth'));
 app.use('/api/address', require('./routes/address'));
 app.use('/api/cart', require('./routes/session-cart'));
 app.use('/api/order', require('./routes/order'));

@@ -34,6 +34,9 @@ const Address = Schema({
             numstreet: {
                 type: Number,
                 required: true
+            },
+            department: {
+                type: Number
             }
         }
 }

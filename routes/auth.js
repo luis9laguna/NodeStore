@@ -3,7 +3,10 @@ const { Router } = require('express');
 const { check } = require('express-validator');
 
 //FUNCTIONS
-const { login, renewToken } = require('../controllers/auth');
+const { login,
+    googleSignIn,
+    forgetEmail,
+    resetPassword } = require('../controllers/auth');
 const { checkParams } = require('../middlewares/check-params');
 const { checkJWT } = require('../middlewares/check-jwt');
 
@@ -19,8 +22,21 @@ router.post('/',
     ],
     login);
 
-//GET INFO OF TOKEN
-router.get( '/renew', checkJWT, renewToken);
 
+
+//GOOGLE
+router.post('/google',
+    [
+        check('token', 'Token is required').not().isEmpty(),
+        checkParams
+    ],
+    googleSignIn);
+
+//PETITION RESET PASSWORD
+router.post('/password-reset', forgetEmail);
+
+
+//RESET PASSWORD
+router.post('/password-reset/:id/:token', resetPassword);
 
 module.exports = router;

@@ -72,7 +72,6 @@ const completedInformation = async (req, res) => {
             return orderCost;
         }));
 
-
         const totalSold = arrayTotal.reduce((a, b) => a + b, 0);
         const totalCost = arrayCost.reduce((a, b) => a + b, 0);
         const totalRevenue = totalSold - totalCost
@@ -161,13 +160,15 @@ const createOrder = async (req, res) => {
         order.orderItems = orderItemsIdsResolved;
         order.total = totalPrice;
         order.totalCost = totalCost;
+        orderAndShipping = totalPrice + 3500;
 
         //SAVE CATEGORY
         await order.save();
 
         res.json({
             ok: true,
-            order
+            order,
+            orderAndShipping
         });
 
     } catch (error) {

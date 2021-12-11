@@ -34,7 +34,11 @@ const OrderSchema = Schema(
                 ref: 'User',
                 required: true
             }
-        ]
+        ],
+        shipping: {
+            type: Number,
+            default: 3500
+        }
     },
     { timestamps: true }
 );
