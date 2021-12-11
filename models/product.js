@@ -34,11 +34,6 @@ const ProductSchema = Schema(
             type: String,
             default: "https://res.cloudinary.com/faisca/image/upload/v1639115747/noimage_fa8wdn.jpg"
         },
-        galery: [
-            {
-                type: String
-            }
-        ],
         status: {
             type: Boolean,
             required: true,

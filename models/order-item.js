@@ -5,7 +5,7 @@ const { Schema, model } = require('mongoose');
 const OrderItems = Schema(
     {
         product: {
-            type: mongoose.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref: 'Product'
         },
         quantity: {
@@ -22,4 +22,4 @@ OrderItems.method('toJSON', function () {
     return object;
 });
 
-module.exports = model('OrderItems', OrderItems);
+module.exports = model('Order-Items', OrderItems);

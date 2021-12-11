@@ -6,7 +6,6 @@ const cors = require('cors');
 
 const { dbConnection } = require('./db/config');
 
-
 //SERVER
 const app = express();
 
@@ -34,11 +33,6 @@ app.use('/api/cart', require('./routes/session-cart'));
 app.use('/api/order', require('./routes/order'));
 app.use('/api/like', require('./routes/like'));
 app.use('/api/upload', require('./routes/upload'));
-
-
-
-
-
 
 
 //LISTEN

@@ -4,11 +4,11 @@ const { check } = require('express-validator');
 
 //FUNCTIONS
 const { getOrder,
+    getOrdersByUser,
     getAllOrders,
-    completeOrders,
+    completedInformation,
     createOrder,
-    updateOrder,
-    deleteOrder } = require('../controllers/order');
+    updateOrder } = require('../controllers/order');
 const { checkParams } = require('../middlewares/check-params');
 const { checkJWT, checkAdmin } = require('../middlewares/check-jwt');
 
@@ -18,11 +18,14 @@ const router = Router();
 //GET
 router.get('/:id', checkJWT, getOrder);
 
+//GET ORDERS BY USER
+router.get('/all/:id', checkJWT, getOrdersByUser);
+
 //GET COMPLETE ORDERS
-router.get('/total/a',[ 
+router.get('/total/information',[ 
     checkJWT,
     checkAdmin
-], completeOrders);
+], completedInformation);
 
 //GET ALL
 router.get('/', [ 
@@ -35,9 +38,6 @@ router.post('/',
 [ checkJWT,
     check('user', 'User is required').isMongoId(),
     check('address', 'Address is required').isMongoId(),
-    check('total', 'Total is required').not().isEmpty(),
-    check('products.[0].product', 'Product is required').isMongoId(),
-    check('products.[0].quantity', 'Quantity is required').not().isEmpty(),
     checkParams
 ], createOrder);
 
@@ -49,8 +49,6 @@ router.put('/:id',
     check('status', 'Status is required').not().isEmpty(),
     checkParams
 ], updateOrder);
-
-router.delete('/:id', deleteOrder);
 
 
 module.exports = router;

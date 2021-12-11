@@ -1,6 +1,5 @@
 //REQUIRED
 const Product = require('../models/product');
-const User = require('../models/user');
 
 //CODE
 
@@ -8,11 +7,38 @@ const User = require('../models/user');
 const getProduct = async (req, res) => {
     try {
 
-        const categories = await Product.find({ "status": true }).sort('name');
+        const products = await Product.find({ "status": true }).sort('name');
 
         res.json({
             ok: true,
-            categories
+            products
+        });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            message: "Unexpected Error"
+        });
+    }
+}
+
+//GET PRODUCT BY ID
+const getProductByID = async (req, res) => {
+    try {
+        const uid = req.params.id;
+        const product = await Product.findById(uid);
+
+        if(!product){
+            return res.status(404).json({
+                ok: false,
+                message: 'Product not found'
+            });
+        }
+
+        res.json({
+            ok: true,
+            product
         });
 
     } catch (error) {
@@ -66,10 +92,10 @@ const updateProduct = async (req, res) => {
 
 
         const uid = req.params.id;
-        const userDB = await Product.findById(uid);
+        const productDB = await Product.findById(uid);
 
         //VERIFY PRODUCT
-        if (!userDB) {
+        if (!productDB) {
             return res.status(404).json({
                 ok: false,
                 message: 'Product not found'
@@ -126,6 +152,7 @@ const deleteProduct = async (req, res) => {
 
 module.exports = {
     getProduct,
+    getProductByID,
     createProduct,
     updateProduct,
     deleteProduct

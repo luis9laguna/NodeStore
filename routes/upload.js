@@ -4,8 +4,10 @@ const { check } = require('express-validator');
 const fileUpload = require('express-fileupload');
 
 //FUNCTIONS
-const { updateImage } = require('../controllers/upload');
-const { checkParams } = require('../middlewares/check-params');
+const { updateImage, 
+    uploadGallery, 
+    DeletePhotoGallery, 
+    getGalleryByProduct } = require('../controllers/upload');
 const { checkImage } = require('../middlewares/check-image');
 const { checkJWT, checkSuper } = require('../middlewares/check-jwt');
 
@@ -18,21 +20,27 @@ router.use( fileUpload({
     createParentPath: true
 }));
 
-
-
 //ROUTES
 
+//GET GALLERY BY PRODUCT
+router.get('/:id', getGalleryByProduct)
+
+//UPDATE PHOTO OF PRODUCT OR CATEGORY
 router.post('/:collection/:id', [
     checkJWT,
     checkSuper,
     checkImage] , updateImage);
 
+//POST GALLERY PHOTO PRODUCT
+router.post('/:id',[
+    checkJWT,
+    checkSuper,
+    checkImage], uploadGallery);
 
-router.get('/:collection/:id', [
-    check('id','Id is required').isMongoId(),
-    check('collection').custom( c => allowedCollections( c, ['product','category'] ) ),
-    checkParams
-]);
+//DELETE PHOTO OF A PRODUCT
+router.delete('/:id',[
+    checkJWT,
+    checkSuper], DeletePhotoGallery);
   
 
 module.exports = router;

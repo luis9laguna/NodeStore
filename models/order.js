@@ -15,6 +15,10 @@ const OrderSchema = Schema(
             ref: 'Address',
             required: true
         },
+        totalCost: {
+            type: Number,
+            required: true
+        },
         total: {
             type: Number,
             required: true
