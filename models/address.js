@@ -15,6 +15,10 @@ const Address = Schema({
                 type: Number,
                 required: true
             },
+            rut:{
+                type: String,
+                required: true
+            },
             state: {
                 type: String,
                 required: true
@@ -43,9 +47,8 @@ const Address = Schema({
 );
 
 Address.method('toJSON', function () {
-    const { __v, _id, ...object } = this.toObject();
+    const { __v, ...object } = this.toObject();
 
-    object.uid = _id;
     return object;
 });
 

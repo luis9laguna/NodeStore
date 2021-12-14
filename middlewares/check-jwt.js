@@ -19,8 +19,8 @@ const checkJWT = (req, res, next) => {
         }
 
         //GET ID AND ROLE
-        const { uid, role } = jwt.verify(token, process.env.JWT_SECRET);
-        req.uid = uid;
+        const { id, role } = jwt.verify(token, process.env.JWT_SECRET);
+        req.id = id;
         req.role = role;
 
         next();
@@ -53,7 +53,7 @@ const checkAdmin = async(req, res, next) => {
 
     const role = req.role;
     
-    if(role == "ADMIN_ROLE" || "SUPER_ROLE"){
+    if(role == "ADMIN_ROLE" || role == "SUPER_ROLE"){
         next();
     }else{
         return res.status(401).send({

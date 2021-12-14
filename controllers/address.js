@@ -8,8 +8,8 @@ const getAddressesByUser = async(req, res) =>{
 
     try{
 
-        const uid = req.params.id;
-        const addresses = await Address.find({"user": uid});
+        const id = req.params.id;
+        const addresses = await Address.find({"user": id});
     
         res.json({
             ok: true,
@@ -60,8 +60,8 @@ const updateAddress = async (req, res) =>{
 
     try{
         
-        const uid = req.params.id;
-        const addressDB = await Address.findById(uid);
+        const id = req.params.id;
+        const addressDB = await Address.findById(id);
 
         //VERIFY ADDRESS
         if(!addressDB){
@@ -73,7 +73,7 @@ const updateAddress = async (req, res) =>{
 
         //UPDATE ADDRESS
         const { __v, user, ...field } = req.body;
-        const addressUpdate = await Address.findByIdAndUpdate(uid, field, { new: true });
+        const addressUpdate = await Address.findByIdAndUpdate(id, field, { new: true });
         
         res.json({
             ok:true,
@@ -95,8 +95,8 @@ const deleteAddress = async (req, res) => {
 
     try{
         
-        const uid = req.params.id;
-        const addressDB = await Address.findById(uid);
+        const id = req.params.id;
+        const addressDB = await Address.findById(id);
 
         //VERIFY ADDRESS
         if(!addressDB){
@@ -106,7 +106,7 @@ const deleteAddress = async (req, res) => {
             });
         }
 
-        await Address.findByIdAndRemove( uid, addressDB );
+        await Address.findByIdAndRemove( id, addressDB );
         
         res.json({
             ok:true,

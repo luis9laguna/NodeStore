@@ -8,16 +8,15 @@ const { login,
     forgetEmail,
     resetPassword } = require('../controllers/auth');
 const { checkParams } = require('../middlewares/check-params');
-const { checkJWT } = require('../middlewares/check-jwt');
 
 //CODE
 const router = Router();
 
 //STANDARD
-router.post('/',
+router.post('/login',
     [
-        check('password', 'Password is required').not().isEmpty(),
         check('email', 'Email is required').isEmail(),
+        check('password', 'Password is required').not().isEmpty(),
         checkParams
     ],
     login);
@@ -37,6 +36,6 @@ router.post('/password-reset', forgetEmail);
 
 
 //RESET PASSWORD
-router.post('/password-reset/:id/:token', resetPassword);
+router.put('/password-reset/:token', resetPassword);
 
 module.exports = router;

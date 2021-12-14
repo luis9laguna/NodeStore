@@ -8,8 +8,8 @@ const Like = require('../models/like');
 const getLikesByUser = async (req, res) => {
 
     try {
-        const uid = req.params.id;
-        const likesUser = await Like.find({ "user": uid })
+        const id = req.params.id;
+        const likesUser = await Like.find({ "user": id })
 
 
         if (likesUser == "") {
@@ -78,12 +78,8 @@ const giveLike = async (req, res) => {
 const giveDislike = async (req, res) => {
     try {
 
-        const uid = req.params.id;
-        const like = await Like.findById(uid);
-        // const user = req.body.user;
-        // const product = req.body.product;
-        // const like = await Like.find({"product": product, "user": user});
-
+        const id = req.params.id;
+        const like = await Like.findById(id);
 
         //VERIFY LIKE
 
@@ -94,7 +90,7 @@ const giveDislike = async (req, res) => {
             });
         }
 
-        await Like.findByIdAndDelete(uid);
+        await Like.findByIdAndDelete(id);
 
         res.json({
             ok: true,
@@ -115,8 +111,8 @@ const giveDislike = async (req, res) => {
 
 const likesProduct = async (req, res) => {
     try {
-        const uid = req.params.id;
-        const LikeDB = await Like.countDocuments({ "product": uid })
+        const id = req.params.id;
+        const LikeDB = await Like.countDocuments({ "product": id })
 
         res.json({
             ok: true,

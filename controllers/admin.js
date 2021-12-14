@@ -14,8 +14,7 @@ const getAdmins = async(req, res) =>{
     
         res.json({
             ok: true,
-            users,
-            uid: req.uid
+            users
         });
 
     }catch(err){
@@ -77,8 +76,8 @@ const updateAdmin = async (req, res) =>{
 
     try{
         
-        const uid = req.params.id;
-        const userDB = await User.findById( uid );
+        const id = req.params.id;
+        const userDB = await User.findById( id );
 
         //VERIFY USER
         if(!userDB){
@@ -90,7 +89,7 @@ const updateAdmin = async (req, res) =>{
 
         //UPDATE USER
         const { password, google, ...field } = req.body;
-        const userUpdate = await User.findByIdAndUpdate( uid, field, { new : true } );
+        const userUpdate = await User.findByIdAndUpdate( id, field, { new : true } );
         
         res.json({
             ok:true,
@@ -112,8 +111,8 @@ const deleteAdmin = async (req, res) => {
 
     try{
         
-        const uid = req.params.id;
-        const userDB = await User.findById( uid );
+        const id = req.params.id;
+        const userDB = await User.findById( id );
 
         //VERIFY USER
         if(!userDB){
@@ -124,7 +123,7 @@ const deleteAdmin = async (req, res) => {
         }
 
         //DELETE USER
-        await User.findByIdAndDelete( uid );
+        await User.findByIdAndDelete( id );
         
         res.json({
             ok:true,

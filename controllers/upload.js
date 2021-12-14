@@ -16,8 +16,8 @@ const getGalleryByProduct = async (req, res) => {
 
     try {
 
-        const uid = req.params.id;
-        const gallery = await Gallery.find({"product": uid});
+        const id = req.params.id;
+        const gallery = await Gallery.find({"product": id});
 
         if (!gallery) {
             return res.status(404).json({
@@ -98,8 +98,8 @@ const updateImage = async (req, res = response) => {
 
 const uploadGallery = async (req, res) => {
     
-    const uid = req.params.id;
-    const product = await Product.findById(uid);
+    const id = req.params.id;
+    const product = await Product.findById(id);
 
     if (!product) {
         return res.status(404).json({
@@ -114,7 +114,7 @@ const uploadGallery = async (req, res) => {
     const { tempFilePath } = req.files.image;
     const { secure_url } = await cloudinary.uploader.upload(tempFilePath, { public_id: `product/${name}/gallery/${uuidv4()}` });
     gallery.url = secure_url;
-    gallery.product = uid;
+    gallery.product = id;
 
     //SAVE
     gallery.save();
@@ -126,8 +126,8 @@ const uploadGallery = async (req, res) => {
 //DELETE PHOTO OF GALLERY
 const DeletePhotoGallery = async (req, res) => {
 
-    const uid = req.params.id;
-    const photo = await Gallery.findById(uid);
+    const id = req.params.id;
+    const photo = await Gallery.findById(id);
 
     if (!photo) {
         return res.status(404).json({
@@ -135,8 +135,8 @@ const DeletePhotoGallery = async (req, res) => {
             message: 'Photo not found'
         });
     }
-    const uidProduct = photo.product;
-    const product = await Product.findById(uidProduct);
+    const idProduct = photo.product;
+    const product = await Product.findById(idProduct);
 
     if (!product) {
         return res.status(404).json({
@@ -153,7 +153,7 @@ const DeletePhotoGallery = async (req, res) => {
     //DELETE
     cloudinary.uploader.destroy(`products/${productName}/gallery/${public_id}`);
 
-    await Gallery.findByIdAndDelete(uid);
+    await Gallery.findByIdAndDelete(id);
     console.log(public_id);
 
     res.json({

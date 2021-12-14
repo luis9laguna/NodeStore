@@ -4,7 +4,10 @@ const { Schema, model } = require('mongoose');
 //CODE
 const OrderSchema = Schema(
     {
-
+        code: {
+            type: String,
+            required: true
+        },
         user: {
             type: Schema.Types.ObjectId,
             ref: 'User',
@@ -45,9 +48,8 @@ const OrderSchema = Schema(
 
 
 OrderSchema.method('toJSON', function () {
-    const { __v, _id, ...object } = this.toObject();
+    const { __v, ...object } = this.toObject();
 
-    object.uid = _id;
     return object;
 });
 

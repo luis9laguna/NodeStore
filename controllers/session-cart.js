@@ -8,8 +8,8 @@ const getCart = async (req, res) => {
 
     try {
 
-        const uid = req.params.id;
-        const cart = await Cart.find({ "user": uid });
+        const id = req.params.id;
+        const cart = await Cart.find({ "user": id });
 
         res.json({
             ok: true,
@@ -88,8 +88,8 @@ const updateCart = async (req, res) => {
 
     try {
 
-        const uid = req.params.id;
-        const cartDB = await Cart.findOne({ "user": uid });
+        const id = req.params.id;
+        const cartDB = await Cart.findOne({ "user": id });
 
         //VERIFY CART
         if (!cartDB) {
@@ -101,7 +101,7 @@ const updateCart = async (req, res) => {
 
         //UPDATE CART
         const { __v, user, ...field } = req.body;
-        const cartUpdate = await Cart.findOneAndUpdate({ "user": uid }, field, { new: true });
+        const cartUpdate = await Cart.findOneAndUpdate({ "user": id }, field, { new: true });
 
         res.json({
             ok: true,
@@ -123,8 +123,8 @@ const deleteCart = async (req, res) => {
 
     try {
 
-        const uid = req.params.id;
-        const cartDB = await Cart.findOneAndRemove({ "user": uid })
+        const id = req.params.id;
+        const cartDB = await Cart.findOneAndRemove({ "user": id })
         //VERIFY ADDRESS
         if (!cartDB) {
             return res.status(404).json({
@@ -133,7 +133,7 @@ const deleteCart = async (req, res) => {
             });
         }
 
-        await Cart.findByIdAndRemove(uid, cartDB);
+        await Cart.findByIdAndRemove(id, cartDB);
 
         res.json({
             ok: true,

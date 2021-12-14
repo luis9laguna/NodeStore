@@ -29,9 +29,9 @@ const getProductByCategory = async (req, res) => {
 
     try {
 
-        const uid = req.params.id;
-        const products = await Product.find({"category": uid, "status": true}).sort('name');
-        const category = await Category.findById(uid);
+        const id = req.params.id;
+        const products = await Product.find({"category": id, "status": true}).sort('name');
+        const category = await Category.findById(id);
     
         res.json({
             ok: true,
@@ -55,6 +55,8 @@ const createCategory = async (req, res) => {
 
         const { name } = req.body;
         const existCategory = await Category.findOne({ name });
+   
+        
 
         //VERIFY CATEGORY
         if (existCategory) {
@@ -67,11 +69,11 @@ const createCategory = async (req, res) => {
         const category = new Category(req.body);
 
         //SAVE CATEGORY
-        await category.save();
+        // await category.save();
 
         res.json({
             ok: true,
-            category
+            name
         })
 
     } catch (error) {
@@ -89,8 +91,8 @@ const updateCategory = async (req, res) => {
     try {
 
 
-        const uid = req.params.id;
-        const userDB = await Category.findById(uid);
+        const id = req.params.id;
+        const userDB = await Category.findById(id);
 
         //VERIFY CATEGORY
         if (!userDB) {
@@ -102,7 +104,7 @@ const updateCategory = async (req, res) => {
 
         //UPDATE CATEGORY
         const { __v, ...field } = req.body;
-        const categoryUpdate = await Category.findByIdAndUpdate(uid, field, { new: true });
+        const categoryUpdate = await Category.findByIdAndUpdate(id, field, { new: true });
 
         res.json({
             ok: true,
@@ -121,8 +123,8 @@ const updateCategory = async (req, res) => {
 //DELETE
 const deleteCategory = async (req, res) => {
     try {
-        const uid = req.params.id;
-        const CategoryDB = await Category.findById(uid);
+        const id = req.params.id;
+        const CategoryDB = await Category.findById(id);
 
         if (!CategoryDB) {
             return res.status(404).json({
@@ -132,7 +134,7 @@ const deleteCategory = async (req, res) => {
         }
 
         //DELETE CATEGORY
-        await Category.findByIdAndUpdate(uid, {status:false}, {new: true } );
+        await Category.findByIdAndUpdate(id, {status:false}, {new: true } );
 
         res.json({
             ok: true,

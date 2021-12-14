@@ -24,9 +24,8 @@ const TokenForgotSchema = Schema(
 );
 
 TokenForgotSchema.method('toJSON', function () {
-    const { __v, _id, ...object } = this.toObject();
+    const { __v, ...object } = this.toObject();
 
-    object.uid = _id;
     return object;
 });
 

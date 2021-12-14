@@ -5,6 +5,7 @@ const { check } = require('express-validator');
 //FUNCTIONS
 const { getOrder,
     getOrdersByUser,
+    getOrderByCode,
     getAllOrders,
     completedInformation,
     createOrder,
@@ -26,6 +27,9 @@ router.get('/total/information',[
     checkJWT,
     checkAdmin
 ], completedInformation);
+
+////GET ORDERS BY CODE
+router.get('/code/status', getOrderByCode);
 
 //GET ALL
 router.get('/', [ 

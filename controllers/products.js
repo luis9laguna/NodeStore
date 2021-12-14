@@ -26,8 +26,8 @@ const getProduct = async (req, res) => {
 //GET PRODUCT BY ID
 const getProductByID = async (req, res) => {
     try {
-        const uid = req.params.id;
-        const product = await Product.findById(uid);
+        const id = req.params.id;
+        const product = await Product.findById(id);
 
         if(!product){
             return res.status(404).json({
@@ -91,8 +91,8 @@ const updateProduct = async (req, res) => {
     try {
 
 
-        const uid = req.params.id;
-        const productDB = await Product.findById(uid);
+        const id = req.params.id;
+        const productDB = await Product.findById(id);
 
         //VERIFY PRODUCT
         if (!productDB) {
@@ -104,7 +104,7 @@ const updateProduct = async (req, res) => {
 
         //UPDATE PRODUCT
         const { __v, ...field } = req.body;
-        const productUpdate = await Product.findByIdAndUpdate(uid, field, { new: true });
+        const productUpdate = await Product.findByIdAndUpdate(id, field, { new: true });
 
         res.json({
             ok: true,
@@ -123,8 +123,8 @@ const updateProduct = async (req, res) => {
 //DELETE
 const deleteProduct = async (req, res) => {
     try {
-        const uid = req.params.id;
-        const ProductDB = await Product.findById(uid);
+        const id = req.params.id;
+        const ProductDB = await Product.findById(id);
 
         if (!ProductDB) {
             return res.status(404).json({
@@ -134,7 +134,7 @@ const deleteProduct = async (req, res) => {
         }
 
         //DELETE CATEGORY
-        await Product.findByIdAndUpdate(uid, { status: false }, { new: true });
+        await Product.findByIdAndUpdate(id, { status: false }, { new: true });
 
         res.json({
             ok: true,
