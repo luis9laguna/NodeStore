@@ -50,7 +50,7 @@ router.put('/:id',
 [ 
     checkJWT,
     checkAdmin,
-    check('status', 'Status is required').not().isEmpty(),
+    check('status', 'Status is required').not().isEmpty().trim().escape(),
     checkParams
 ], updateOrder);
 

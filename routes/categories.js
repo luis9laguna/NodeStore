@@ -24,7 +24,7 @@ router.get('/:id', getProductByCategory);
 router.post('/', [
     checkJWT,
     checkSuper,
-    check('name', 'Name is required').not().isEmpty(),
+    check('name', 'Name is required').not().isEmpty().trim().escape(),
     checkParams
 ],
     createCategory);
@@ -33,7 +33,7 @@ router.post('/', [
 router.put('/:id', [
     checkJWT,
     checkSuper,
-    check('name', 'Name is required').not().isEmpty(),
+    check('name', 'Name is required').not().isEmpty().trim().escape(),
     checkParams
 ], updateCategory);
 

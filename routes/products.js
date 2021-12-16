@@ -25,12 +25,12 @@ router.get('/:id', getProductByID);
 router.post('/',
 [ checkJWT,
     checkSuper, 
-    check('name', 'Name is required').not().isEmpty(),
+    check('name', 'Name is required').not().isEmpty().trim().escape(),
     check('category', 'Category is required').isMongoId(),
-    check('description', 'Description is required').not().isEmpty(),
-    check('cost', 'Cost is required').not().isEmpty(),
-    check('price', 'Price is required').not().isEmpty(),
-    check('stock', 'Stock is required').not().isEmpty(),
+    check('description', 'Description is required').not().isEmpty().trim().escape(),
+    check('cost', 'Cost is required').not().isEmpty().trim().escape(),
+    check('price', 'Price is required').not().isEmpty().trim().escape(),
+    check('stock', 'Stock is required').not().isEmpty().trim().escape(),
     checkParams
 ], createProduct);
 
@@ -38,12 +38,12 @@ router.post('/',
 router.put('/:id',
 [ checkJWT,
     checkSuper, 
-    check('name', 'Name is required').not().isEmpty(),
+    check('name', 'Name is required').not().isEmpty().trim().escape(),
     check('category', 'Category is required').isMongoId(),
-    check('description', 'Description is required').not().isEmpty(),
-    check('cost', 'Cost is required').not().isEmpty(),
-    check('price', 'Price is required').not().isEmpty(),
-    check('stock', 'Stock is required').not().isEmpty(),
+    check('description', 'Description is required').not().isEmpty().trim().escape(),
+    check('cost', 'Cost is required').not().isEmpty().trim().escape(),
+    check('price', 'Price is required').not().isEmpty().trim().escape(),
+    check('stock', 'Stock is required').not().isEmpty().trim().escape(),
     checkParams
 ], updateProduct);
 

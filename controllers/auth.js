@@ -99,6 +99,46 @@ const googleSignIn = async (req, res) => {
 
 }
 
+
+//CHANGE PASSWORD WITH LOGIN
+
+const changePassword = async (req, res) => {
+    try {
+
+        const id = req.id
+        const oldPassword = req.body.oldPassword;
+        const newPassword = req.body.newPassword;
+        const userDB = await User.findById(id);
+
+        //VERIFY PASSWORD
+        const validPassword = bcrypt.compareSync(oldPassword, userDB.password);
+
+        if (!validPassword) {
+            return res.status(400).json({
+                ok: false,
+                message: 'Invalid Password'
+            });
+        }
+
+        //ENCRYPT
+        const salt = bcrypt.genSaltSync();
+        const newPasswordHash = bcrypt.hashSync( newPassword, salt );
+
+        //UPDATE PASSWORD
+        await User.findByIdAndUpdate(id,{ password : newPasswordHash});
+
+        res.json({
+            message: 'Password changed successfully'
+        });
+
+    } catch (error) {
+        res.status(400).json({
+            ok: false,
+            message: "Error Unexpected, check logs"
+        });
+    }
+}
+
 //PETITION RESET PASSWORD
 const forgetEmail = async (req, res) => {
 
@@ -146,7 +186,7 @@ const forgetEmail = async (req, res) => {
         await tokenForgot.save();
 
         //SEND EMAIL
-        await sendEmail(email, subject, text);
+        // await sendEmail(email, subject, text);
 
         res.json({
             message: 'Email send successfully'
@@ -175,17 +215,17 @@ const resetPassword = async (req, res) => {
 
         //CODE
         const salt = bcrypt.genSaltSync();
-        const password = bcrypt.hashSync( newPassword, salt );
-        
+        const password = bcrypt.hashSync(newPassword, salt);
+
         //UPDATE PASSWORD
-        await User.findByIdAndUpdate(id, {password});
+        await User.findByIdAndUpdate(id, { password });
 
         //DELETE TOKEN
         await TokenForgot.findOneAndRemove({ token });
 
         res.json({
-            ok:true,
-            message:"Password changed correctly",
+            ok: true,
+            message: "Password changed correctly",
         });
 
     } catch (error) {
@@ -198,6 +238,7 @@ const resetPassword = async (req, res) => {
 module.exports = {
     login,
     googleSignIn,
+    changePassword,
     forgetEmail,
     resetPassword
 }

@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const hbs = require ('nodemailer-express-handlebars');
 
 const sendEmail = async (email, subject, text) => {
     try {
@@ -13,11 +14,16 @@ const sendEmail = async (email, subject, text) => {
             },
         });
 
-        await transporter.sendMail({
+        transporter.use('compile', hbs({
+            viewEngine: 'express-handlebars',
+            viewPath: '../views/'
+        }));
+
+        transporter.sendMail({
             from: process.env.EMAIL_ADDRESS,
             to: email,
             subject,
-            text
+            template: 'index'
         });
 
         console.log("email sent sucessfully");

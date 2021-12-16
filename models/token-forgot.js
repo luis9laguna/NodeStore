@@ -19,8 +19,7 @@ const TokenForgotSchema = Schema(
                 expires: 3600
             }
 
-    },
-    { timestamps: true }
+    }
 );
 
 TokenForgotSchema.method('toJSON', function () {

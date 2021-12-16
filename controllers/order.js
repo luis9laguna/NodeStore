@@ -41,7 +41,7 @@ const getOrderByCode = async (req, res) => {
     try {
 
         const code = req.body.code;
-        const order = await Order.findOne({code});
+        const order = await Order.findOne({ code });
 
         if (!order) {
             return res.status(404).json({
@@ -50,7 +50,7 @@ const getOrderByCode = async (req, res) => {
             });
         }
 
-        const status= order.status
+        const status = order.status
 
         res.json({
             ok: true,
@@ -92,52 +92,61 @@ const completedInformation = async (req, res) => {
     try {
 
         const completedOrders = await Order.find({ "status": "delivered" }).
-        populate('address');
+            populate('address');
 
         //TOTAL OF COMPLETED ORDERS
         const totalCompleted = completedOrders.length;
-    
+
         //TOTAL OF SOLD AND COST
-        const arrayTotal = await Promise.all(completedOrders.map(async (array) => {
+        const arrayTotal = completedOrders.map((array) => {
             const totalPrice = array.total;
             return totalPrice;
-        }));
+        });
 
-        const arrayCost = await Promise.all(completedOrders.map(async (array) => {
+        const arrayCost = completedOrders.map((array) => {
             const orderCost = array.totalCost;
             return orderCost;
-        }));
+        });
 
         const totalSold = arrayTotal.reduce((a, b) => a + b, 0);
         const totalCost = arrayCost.reduce((a, b) => a + b, 0);
 
         //TOTAL REVENUE
         const totalRevenue = totalSold - totalCost
-    
+
         //ADDRESS OF USERS WHO BOUGHT
-        const AddressesUser = await Promise.all(completedOrders.map(async (array) => {
-            const allAddresses = array.address;
-            return allAddresses;
-        }));
+        const addressessUser = completedOrders.map((array) => {
+            return array.address.address;
+        });
+        
+        const province = addressessUser.filter(function (p) {
+            return p.state == "metropolitana"
+        });
 
-        const arrayAddresses = await Promise.all(AddressesUser.map(async (array) => {
-            const allAddresses = array.address;
-            return allAddresses;
-        }));
+        //IF I ONLY NEED PROVINCE AND CITY 
+        //     const reducedFilter = (data, keys, fn) =>
+        //     data.filter(fn).map(el =>
+        //         keys.reduce((acc, key) => {
+        //             acc[key] = el[key];
+        //             return acc;
+        //         }, {})
+        //     );
 
-        //STATE
-        const allStates = await Promise.all(arrayAddresses.map(async (array) => {
-            const states = array.state;
-            return states;
-        }));
+        // const provinceCityMetro = reducedFilter(addressessUser, ['province', 'city'], item => item.state == "metropolitana");
 
-        //COUNTRIES
+        //STATES OF USERS WHO BOUGHT
+        const statesUser = completedOrders.map((array) => {
+            return array.address.address.state;
+        });
 
+        //RESPONSE
         res.json({
             ok: true,
             totalCompleted,
             totalSold,
-            totalRevenue
+            totalRevenue,
+            statesUser,
+            province
         });
 
 
@@ -181,7 +190,7 @@ const createOrder = async (req, res) => {
                 product: orderItem.product,
                 quantity: orderItem.quantity,
             });
-            
+
             //SAVE ORDER ITEM
             newOrderItem = await newOrderItem.save();
 
@@ -200,7 +209,7 @@ const createOrder = async (req, res) => {
         }));
 
         // CODE TOTAL PRICE
-        const orderItemsIdsResolved = await orderItemsIds;
+        const orderItemsIdsResolved = orderItemsIds;
 
         const totalPricesArray = await Promise.all(orderItemsIdsResolved.map(async (orderItemId) => {
             const orderItem = await OrderItem.findById(orderItemId).populate('product', 'price');

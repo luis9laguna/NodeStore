@@ -20,24 +20,24 @@ router.get('/:id', getAddressesByUser);
 router.post('/',
 [ checkJWT,
     check('user', 'User is required').isMongoId(),
-    check('address.phone', 'Phone is required').not().isEmpty(),
-    check('address.state', 'State is required').not().isEmpty(),
-    check('address.city', 'City is required').not().isEmpty(),
-    check('address.province', 'Province is required').not().isEmpty(),
-    check('address.street', 'Street is required').not().isEmpty(),
-    check('address.numstreet', 'Numstreet is required').not().isEmpty(),
+    check('address.phone', 'Phone is required').not().isEmpty().trim().escape(),
+    check('address.state', 'State is required').not().isEmpty().trim().escape(),
+    check('address.city', 'City is required').not().isEmpty().trim().escape(),
+    check('address.province', 'Province is required').not().isEmpty().trim().escape(),
+    check('address.street', 'Street is required').not().isEmpty().trim().escape(),
+    check('address.numstreet', 'Numstreet is required').not().isEmpty().trim().escape(),
     checkParams
 ], createAddress);
 
 //PUT
 router.put('/:id',
 [ checkJWT,
-    check('address.phone', 'Phone is required').not().isEmpty(),
-    check('address.state', 'State is required').not().isEmpty(),
-    check('address.city', 'City is required').not().isEmpty(),
-    check('address.province', 'Province is required').not().isEmpty(),
-    check('address.street', 'Street is required').not().isEmpty(),
-    check('address.numstreet', 'Numstreet is required').not().isEmpty(),
+    check('address.phone', 'Phone is required').not().isEmpty().trim().escape(),
+    check('address.state', 'State is required').not().isEmpty().trim().escape(),
+    check('address.city', 'City is required').not().isEmpty().trim().escape(),
+    check('address.province', 'Province is required').not().isEmpty().trim().escape(),
+    check('address.street', 'Street is required').not().isEmpty().trim().escape(),
+    check('address.numstreet', 'Numstreet is required').not().isEmpty().trim().escape(),
     checkParams
 ], updateAddress);
 

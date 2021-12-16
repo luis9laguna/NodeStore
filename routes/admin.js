@@ -19,9 +19,9 @@ router.post('/',
     [
         checkJWT,
         checkSuper,
-        check('name', 'Name is required').not().isEmpty(),
-        check('password', 'Password is required').not().isEmpty(),
-        check('email', 'Email is required').isEmail(),
+        check('name', 'Name is required').not().isEmpty().trim().escape(),
+        check('password', 'Password is required').not().isEmpty().trim().escape(),
+        check('email', 'Email is required').isEmail().normalizeEmail(),
         checkParams
     ],
     createAdmin);
@@ -32,8 +32,8 @@ router.put('/:id',
     [
         checkJWT,
         checkSuper,
-        check('name', 'Name is required').not().isEmpty(),
-        check('email', 'Email is required').isEmail(),
+        check('name', 'Name is required').not().isEmpty().trim().escape(),
+        check('email', 'Email is required').isEmail().normalizeEmail(),
         checkParams
     ],
     updateAdmin);
