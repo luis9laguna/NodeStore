@@ -3,14 +3,14 @@ const mongoose = require('mongoose');
 
 
 //CODE
-const dbConnection = async() => {
+const dbConnection = () => {
     try {
-        await mongoose.connect ( process.env.DB_CN,{
-            useNewUrlParser: true, 
+        mongoose.connect(process.env.DB_CN, {
+            useNewUrlParser: true,
             useUnifiedTopology: true
         })
     }
-    catch (error){
+    catch (error) {
         console.log(error)
         throw new Error('Database connection error');
     }

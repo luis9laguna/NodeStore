@@ -18,30 +18,32 @@ router.get('/:id', getAddressesByUser);
 
 //POST
 router.post('/',
-[ checkJWT,
-    check('user', 'User is required').isMongoId(),
-    check('address.phone', 'Phone is required').not().isEmpty().trim().escape(),
-    check('address.state', 'State is required').not().isEmpty().trim().escape(),
-    check('address.city', 'City is required').not().isEmpty().trim().escape(),
-    check('address.province', 'Province is required').not().isEmpty().trim().escape(),
-    check('address.street', 'Street is required').not().isEmpty().trim().escape(),
-    check('address.numstreet', 'Numstreet is required').not().isEmpty().trim().escape(),
-    checkParams
-], createAddress);
+    [checkJWT,
+        check('address.name', 'Name is required').not().isEmpty().trim().escape(),
+        check('user', 'User is required').isMongoId(),
+        check('address.phone', 'Phone is required').not().isEmpty().trim().escape(),
+        check('address.state', 'State is required').not().isEmpty().trim().escape(),
+        check('address.city', 'City is required').not().isEmpty().trim().escape(),
+        check('address.province', 'Province is required').not().isEmpty().trim().escape(),
+        check('address.street', 'Street is required').not().isEmpty().trim().escape(),
+        check('address.numstreet', 'Numstreet is required').not().isEmpty().trim().escape(),
+        checkParams
+    ], createAddress);
 
 //PUT
 router.put('/:id',
-[ checkJWT,
-    check('address.phone', 'Phone is required').not().isEmpty().trim().escape(),
-    check('address.state', 'State is required').not().isEmpty().trim().escape(),
-    check('address.city', 'City is required').not().isEmpty().trim().escape(),
-    check('address.province', 'Province is required').not().isEmpty().trim().escape(),
-    check('address.street', 'Street is required').not().isEmpty().trim().escape(),
-    check('address.numstreet', 'Numstreet is required').not().isEmpty().trim().escape(),
-    checkParams
-], updateAddress);
+    [checkJWT,
+        check('address.name', 'Name is required').not().isEmpty().trim().escape(),
+        check('address.phone', 'Phone is required').not().isEmpty().trim().escape(),
+        check('address.state', 'State is required').not().isEmpty().trim().escape(),
+        check('address.city', 'City is required').not().isEmpty().trim().escape(),
+        check('address.province', 'Province is required').not().isEmpty().trim().escape(),
+        check('address.street', 'Street is required').not().isEmpty().trim().escape(),
+        check('address.numstreet', 'Numstreet is required').not().isEmpty().trim().escape(),
+        checkParams
+    ], updateAddress);
 
 //DELETE
-router.delete('/:id',checkJWT, deleteAddress);
+router.delete('/:id', checkJWT, deleteAddress);
 
 module.exports = router;

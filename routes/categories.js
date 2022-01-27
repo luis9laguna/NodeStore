@@ -3,7 +3,7 @@ const { Router } = require('express');
 const { check } = require('express-validator');
 
 //FUNCTIONS
-const { getCategory,
+const { getCategories,
     getProductByCategory,
     createCategory,
     updateCategory,
@@ -15,10 +15,10 @@ const { checkJWT, checkSuper } = require('../middlewares/check-jwt');
 const router = Router();
 
 //GET
-router.get('/', getCategory);
+router.get('/', getCategories);
 
-//GET PRODUCT BY CATEGORY
-router.get('/:id', getProductByCategory);
+//GET PRODUCTS BY CATEGORY
+router.get('/:slug', getProductByCategory);
 
 //POST
 router.post('/', [

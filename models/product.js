@@ -34,6 +34,17 @@ const ProductSchema = Schema(
             type: String,
             default: "https://res.cloudinary.com/faisca/image/upload/v1639115747/noimage_fa8wdn.jpg"
         },
+        slug: {
+            type: String,
+            required: true
+        },
+        likes: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+                required: true
+            },
+        ],
         status: {
             type: Boolean,
             required: true,

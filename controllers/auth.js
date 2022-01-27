@@ -28,7 +28,7 @@ const login = async (req, res) => {
         if (!validPassword) {
             return res.status(400).json({
                 ok: false,
-                message: 'Invalid Password'
+                message: 'Invalid Email or Password'
             });
         }
         const expire = '12h'
@@ -37,7 +37,11 @@ const login = async (req, res) => {
 
         res.json({
             ok: true,
-            token
+            token,
+            user: {
+                name: userDB.name,
+                role: userDB.role
+            }
         });
 
     } catch (error) {
@@ -101,7 +105,6 @@ const googleSignIn = async (req, res) => {
 
 
 //CHANGE PASSWORD WITH LOGIN
-
 const changePassword = async (req, res) => {
     try {
 
@@ -122,10 +125,10 @@ const changePassword = async (req, res) => {
 
         //ENCRYPT
         const salt = bcrypt.genSaltSync();
-        const newPasswordHash = bcrypt.hashSync( newPassword, salt );
+        const newPasswordHash = bcrypt.hashSync(newPassword, salt);
 
         //UPDATE PASSWORD
-        await User.findByIdAndUpdate(id,{ password : newPasswordHash});
+        await User.findByIdAndUpdate(id, { password: newPasswordHash });
 
         res.json({
             message: 'Password changed successfully'

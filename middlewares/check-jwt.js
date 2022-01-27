@@ -5,15 +5,15 @@ const jwt = require('jsonwebtoken');
 
 //VERIFY JWT USER
 const checkJWT = (req, res, next) => {
-  
-    try{
+
+    try {
 
         const token = req.header('Authorization');
 
         //VERIFY TOKEN
-        if( !token ) {
+        if (!token) {
             return res.status(401).send({
-                ok:false,
+                ok: false,
                 message: 'Needed token'
             });
         }
@@ -25,39 +25,39 @@ const checkJWT = (req, res, next) => {
 
         next();
 
-    }catch(err){
+    } catch (err) {
         return res.status(401).send({
-            ok:false,
+            ok: false,
             message: 'Token Invalid'
         });
     }
 }
 
 //VERIFY JWT SUPER
-const checkSuper = async(req, res, next) => {
+const checkSuper = async (req, res, next) => {
 
     const role = req.role;
-    
-    if(role == "SUPER_ROLE"){
+
+    if (role === "SUPER_ROLE") {
         next();
-    }else{
+    } else {
         return res.status(401).send({
-            ok:false,
+            ok: false,
             message: 'This user is not a super'
         });
     }
 }
 
 //VERIFY JWT ADMIN
-const checkAdmin = async(req, res, next) => {
+const checkAdmin = async (req, res, next) => {
 
     const role = req.role;
-    
-    if(role == "ADMIN_ROLE" || role == "SUPER_ROLE"){
+
+    if (role === "ADMIN_ROLE" || role == "SUPER_ROLE") {
         next();
-    }else{
+    } else {
         return res.status(401).send({
-            ok:false,
+            ok: false,
             message: 'This user is not an admin'
         });
     }

@@ -3,7 +3,7 @@ const Product = require('../models/product');
 
 //CODE
 
-//GET
+//GET ALL
 const getProduct = async (req, res) => {
     try {
 
@@ -23,13 +23,33 @@ const getProduct = async (req, res) => {
     }
 }
 
-//GET PRODUCT BY ID
-const getProductByID = async (req, res) => {
+//GET NEWEST
+const getNewestProduct = async (req, res) => {
     try {
-        const id = req.params.id;
-        const product = await Product.findById(id);
 
-        if(!product){
+        const products = await Product.find({ "status": true }).sort({ createdAt: 'asc' }).limit(10);
+
+        res.json({
+            ok: true,
+            products
+        });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            message: "Unexpected Error"
+        });
+    }
+}
+
+//GET PRODUCT BY SLUG
+const getProductBySlug = async (req, res) => {
+    try {
+        const slug = req.params.slug;
+        const product = await Product.findOne({ 'slug': slug });
+
+        if (!product) {
             return res.status(404).json({
                 ok: false,
                 message: 'Product not found'
@@ -66,7 +86,12 @@ const createProduct = async (req, res) => {
             });
         }
 
-        const product = new Product(req.body);
+        //PRODUCT
+        let product = new Product(req.body);
+
+        //SLUG
+        const slug = slugify(name)
+        product.slug = slug
 
         //SAVE CATEGORY
         await product.save();
@@ -102,9 +127,13 @@ const updateProduct = async (req, res) => {
             });
         }
 
+        //NEWDATA
+        const slug = slugify(productDB.name)
+        let newProduct = req.body
+        newProduct.slug = slug
+
         //UPDATE PRODUCT
-        const { __v, ...field } = req.body;
-        const productUpdate = await Product.findByIdAndUpdate(id, field, { new: true });
+        const productUpdate = await Product.findByIdAndUpdate(id, newProduct, { new: true });
 
         res.json({
             ok: true,
@@ -152,7 +181,8 @@ const deleteProduct = async (req, res) => {
 
 module.exports = {
     getProduct,
-    getProductByID,
+    getNewestProduct,
+    getProductBySlug,
     createProduct,
     updateProduct,
     deleteProduct

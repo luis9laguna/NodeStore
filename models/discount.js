@@ -81,7 +81,7 @@ const DiscountSchema = Schema(
             type: String, 
             require: true, 
             default: "" 
-        },
+        }
 
     },
     { timestamps: true }

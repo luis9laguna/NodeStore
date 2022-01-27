@@ -43,7 +43,7 @@ const giveLike = async (req, res) => {
         const product = req.body.product;
         const like = await Like.find({ "product": product, "user": user });
 
-        //VALIDATION TO SEE IF A PRODUCT ALREADY HAVE A LIKE FOR A SPECIFIC USER
+        //VALIDATION TO SEE IF A PRODUCT ALREADY HAVE A LIKE FOR THE SPECIFIC USER
         if (like == "") {
 
             //GIVING LIKE
@@ -57,14 +57,9 @@ const giveLike = async (req, res) => {
         } else {
             return res.status(404).json({
                 ok: false,
-                message: "This user have already liked this product"
+                message: "This user has already liked this product"
             });
         }
-
-
-
-
-
     } catch (error) {
         console.log(error);
         res.status(500).json({

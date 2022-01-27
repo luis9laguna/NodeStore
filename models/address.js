@@ -11,38 +11,43 @@ const Address = Schema({
     },
 
     address: {
-            phone: {
-                type: Number,
-                required: true
-            },
-            rut:{
-                type: String,
-                required: true
-            },
-            state: {
-                type: String,
-                required: true
-            },
-            city: {
-                type: String,
-                required: true
-            },
-            province: {
-                type: String,
-                required: true
-            },
-            street: {
-                type: String,
-                required: true
-            },
-            numstreet: {
-                type: Number,
-                required: true
-            },
-            department: {
-                type: Number
-            }
+
+        name: {
+            type: String,
+            required: true
+        },
+        phone: {
+            type: Number,
+            required: true
+        },
+        rut: {
+            type: String,
+            required: true
+        },
+        state: {
+            type: String,
+            required: true
+        },
+        city: {
+            type: String,
+            required: true
+        },
+        province: {
+            type: String,
+            required: true
+        },
+        street: {
+            type: String,
+            required: true
+        },
+        numstreet: {
+            type: Number,
+            required: true
+        },
+        department: {
+            type: Number
         }
+    }
 }
 );
 

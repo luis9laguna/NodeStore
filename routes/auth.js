@@ -17,9 +17,9 @@ const router = Router();
 
 //LIMIT OF REQUEST
 const loginLimitter = rateLimit({
-    windowMs: 15 * 60 * 1000,
+    windowMs: 3 * 60 * 1000,
     max: 5,
-    message:{
+    message: {
         code: 429,
         message: "Too many tries to enter to this account wait for a moment"
     }
@@ -28,7 +28,7 @@ const loginLimitter = rateLimit({
 const forgotLimitter = rateLimit({
     windowMs: 30 * 1000,
     max: 1,
-    message:{
+    message: {
         code: 429,
         message: "Wait for a moment before trying again"
     }
@@ -55,9 +55,9 @@ router.post('/google',
 
 //CHANGE PASSWORD WITH LOGIN
 router.put('/change-password',
-    [   checkJWT,
+    [checkJWT,
         check('oldPassword', 'OldPassword is required').not().isEmpty().trim().escape(),
-        check('newPassword', 'NewPassword is required').not().isEmpty().trim().escape(),
+        check('newPassword', 'NewPassword is required').not().isEmpty().trim().escape().isLength({ min: 6 }),
         checkParams
     ],
     changePassword);
@@ -75,7 +75,7 @@ router.post('/password-reset',
 //RESET PASSWORD
 router.put('/password-reset/:token',
     [
-        check('password', 'Password is required').not().isEmpty().trim().escape(),
+        check('password', 'Password is required').not().isEmpty().trim().escape().isLength({ min: 6 }),
         checkParams
     ],
     resetPassword);

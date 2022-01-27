@@ -4,7 +4,8 @@ const { check } = require('express-validator');
 
 //FUNCTIONS
 const { getProduct,
-    getProductByID,
+    getNewestProduct,
+    getProductBySlug,
     createProduct,
     updateProduct,
     deleteProduct } = require('../controllers/products');
@@ -14,38 +15,40 @@ const { checkJWT, checkSuper } = require('../middlewares/check-jwt');
 //CODE
 const router = Router();
 
-//GET
+//GET ALL
 router.get('/', getProduct);
 
-//GET PRODUCT BY ID
+//GET NEWEST PRODUCTS
+router.get('/newest', getNewestProduct);
 
-router.get('/:id', getProductByID);
+//GET PRODUCT BY SLUG
+router.get('/:slug', getProductBySlug);
 
 //POST
 router.post('/',
-[ checkJWT,
-    checkSuper, 
-    check('name', 'Name is required').not().isEmpty().trim().escape(),
-    check('category', 'Category is required').isMongoId(),
-    check('description', 'Description is required').not().isEmpty().trim().escape(),
-    check('cost', 'Cost is required').not().isEmpty().trim().escape(),
-    check('price', 'Price is required').not().isEmpty().trim().escape(),
-    check('stock', 'Stock is required').not().isEmpty().trim().escape(),
-    checkParams
-], createProduct);
+    [checkJWT,
+        checkSuper,
+        check('name', 'Name is required').not().isEmpty().trim().escape(),
+        check('category', 'Category is required').isMongoId(),
+        check('description', 'Description is required').not().isEmpty().trim().escape(),
+        check('cost', 'Cost is required').not().isEmpty().trim().escape(),
+        check('price', 'Price is required').not().isEmpty().trim().escape(),
+        check('stock', 'Stock is required').not().isEmpty().trim().escape(),
+        checkParams
+    ], createProduct);
 
 //PUT
 router.put('/:id',
-[ checkJWT,
-    checkSuper, 
-    check('name', 'Name is required').not().isEmpty().trim().escape(),
-    check('category', 'Category is required').isMongoId(),
-    check('description', 'Description is required').not().isEmpty().trim().escape(),
-    check('cost', 'Cost is required').not().isEmpty().trim().escape(),
-    check('price', 'Price is required').not().isEmpty().trim().escape(),
-    check('stock', 'Stock is required').not().isEmpty().trim().escape(),
-    checkParams
-], updateProduct);
+    [checkJWT,
+        checkSuper,
+        check('name', 'Name is required').not().isEmpty().trim().escape(),
+        check('category', 'Category is required').isMongoId(),
+        check('description', 'Description is required').not().isEmpty().trim().escape(),
+        check('cost', 'Cost is required').not().isEmpty().trim().escape(),
+        check('price', 'Price is required').not().isEmpty().trim().escape(),
+        check('stock', 'Stock is required').not().isEmpty().trim().escape(),
+        checkParams
+    ], updateProduct);
 
 //DELETE
 router.delete('/:id', deleteProduct);

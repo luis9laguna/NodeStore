@@ -17,7 +17,7 @@ const getGalleryByProduct = async (req, res) => {
     try {
 
         const id = req.params.id;
-        const gallery = await Gallery.find({"product": id});
+        const gallery = await Gallery.find({ "product": id });
 
         if (!gallery) {
             return res.status(404).json({
@@ -25,7 +25,7 @@ const getGalleryByProduct = async (req, res) => {
                 message: 'Gallery not found'
             });
         }
-    
+
         res.json({
             ok: true,
             gallery
@@ -44,60 +44,43 @@ const getGalleryByProduct = async (req, res) => {
 
 
 //POST IMAGE
-const updateImage = async (req, res = response) => {
+const updateImage = async (req, res) => {
 
     const { id, collection } = req.params;
 
-    let model;
 
-    switch (collection) {
-        case 'product':
-            model = await Product.findById(id);
-            if (!model) {
-                return res.status(400).json({
-                    msg: `It doesnt exist any product with ${id}`
-                });
-            }
 
-            break;
-
-        case 'category':
-            model = await Category.findById(id);
-            if (!model) {
-                return res.status(400).json({
-                    msg: `It doesnt exist any category with ${id}`
-                });
-            }
-
-            break;
-
-        default:
-            return res.status(500).json({ msg: 'wut?' });
+    const category = await Category.findById(id);
+    if (!category) {
+        return res.status(400).json({
+            msg: `It doesnt exist any category with ${id}`
+        });
     }
-
 
     // CLEANING OUTDATED PHOTOS
 
-    const nameArray = model.image.split('/');
+    const nameArray = category.image.split('/');
     const name = nameArray[nameArray.length - 1];
     const [public_id] = name.split('.');
-    cloudinary.uploader.destroy(`${collection}/${model.name}/${public_id}`);
+    cloudinary.uploader.destroy(`${collection}/${category.name}/${public_id}`);
 
 
+    //SAVING IN CLOUDINARY
     const { tempFilePath } = req.files.image;
-    const { secure_url } = await cloudinary.uploader.upload(tempFilePath, { public_id: `${collection}/${model.name}/${uuidv4()}`});
-    model.image = secure_url;
+    const { secure_url } = await cloudinary.uploader.upload(tempFilePath, { public_id: `${collection}/${category.name}/${uuidv4()}` });
+    category.image = secure_url;
 
-    await model.save();
+    //SAVE DB
+    await category.save();
 
-    res.json(model);
+    res.json(category);
 
 }
 
 //UPLOAD GALLERY
 
 const uploadGallery = async (req, res) => {
-    
+
     const id = req.params.id;
     const product = await Product.findById(id);
 

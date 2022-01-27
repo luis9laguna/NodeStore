@@ -1,14 +1,17 @@
 //REQUIRED
 const Category = require('../models/category');
 const Product = require('../models/product');
+const slugify = require('slugify')
+const { v4: uuidv4 } = require('uuid');
+const cloudinary = require('cloudinary').v2
 
 //CODE
 
-//GET
-const getCategory = async (req, res) => {
+//GET ALL CATEGORIES
+const getCategories = async (req, res) => {
     try {
 
-        const categories = await Category.find({"status": true}).sort('name');
+        const categories = await Category.find({ "status": true }).sort('name');
 
         res.json({
             ok: true,
@@ -24,15 +27,15 @@ const getCategory = async (req, res) => {
     }
 }
 
-//GET ALL PRODUCT BY CATEGORY
+//GET ALL PRODUCTS BY CATEGORY
 const getProductByCategory = async (req, res) => {
 
     try {
 
-        const id = req.params.id;
-        const products = await Product.find({"category": id, "status": true}).sort('name');
-        const category = await Category.findById(id);
-    
+        const slug = req.params.slug;
+        const category = await Category.findOne({ 'slug': slug })
+        const products = await Product.find({ "category": category.id, "status": true }).sort('name');
+
         res.json({
             ok: true,
             category,
@@ -55,8 +58,6 @@ const createCategory = async (req, res) => {
 
         const { name } = req.body;
         const existCategory = await Category.findOne({ name });
-   
-        
 
         //VERIFY CATEGORY
         if (existCategory) {
@@ -66,14 +67,19 @@ const createCategory = async (req, res) => {
             });
         }
 
-        const category = new Category(req.body);
+        //CATEGORY
+        let category = new Category(req.body);
+
+        //SLUG
+        const slug = slugify(name)
+        category.slug = slug
 
         //SAVE CATEGORY
-        // await category.save();
+        await category.save();
 
         res.json({
             ok: true,
-            name
+            category,
         })
 
     } catch (error) {
@@ -90,21 +96,24 @@ const createCategory = async (req, res) => {
 const updateCategory = async (req, res) => {
     try {
 
-
         const id = req.params.id;
-        const userDB = await Category.findById(id);
+        const category = await Category.findById(id);
 
         //VERIFY CATEGORY
-        if (!userDB) {
+        if (!category) {
             return res.status(404).json({
                 ok: false,
                 message: 'Category not found'
             });
         }
 
+        //NEWDATA
+        const slug = slugify(req.body.name)
+        let newCategory = req.body
+        newCategory.slug = slug
+
         //UPDATE CATEGORY
-        const { __v, ...field } = req.body;
-        const categoryUpdate = await Category.findByIdAndUpdate(id, field, { new: true });
+        const categoryUpdate = await Category.findByIdAndUpdate(id, newCategory, { new: true });
 
         res.json({
             ok: true,
@@ -134,7 +143,7 @@ const deleteCategory = async (req, res) => {
         }
 
         //DELETE CATEGORY
-        await Category.findByIdAndUpdate(id, {status:false}, {new: true } );
+        await Category.findByIdAndUpdate(id, { status: false }, { new: true });
 
         res.json({
             ok: true,
@@ -151,7 +160,7 @@ const deleteCategory = async (req, res) => {
 }
 
 module.exports = {
-    getCategory,
+    getCategories,
     getProductByCategory,
     createCategory,
     updateCategory,

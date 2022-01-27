@@ -1,8 +1,40 @@
 //REQUIRED
-const User = require('../models/user'); 
+const User = require('../models/user');
 const bcrypt = require('bcryptjs');
+const { generatorJWT } = require('../helpers/jwt');
 
 //CODE
+
+
+//GET
+const getUser = async (req, res) => {
+    try {
+        const id = req.id
+        const userDB = await User.findById(id);
+
+        //VERIFY USER
+        if (!userDB) {
+            return res.status(404).json({
+                ok: false,
+                message: "User not found"
+            });
+        }
+
+        res.json({
+            ok: true,
+            user: {
+                name: userDB.name,
+                role: userDB.role
+            }
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            ok: false,
+            message: "Unexpected Error"
+        });
+    }
+}
 
 //GET ALL USERS
 const getAllUsers = async (req, res) => {
@@ -15,7 +47,6 @@ const getAllUsers = async (req, res) => {
         });
 
     } catch (err) {
-        console.log(err);
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -24,17 +55,17 @@ const getAllUsers = async (req, res) => {
 }
 
 //CREATE
-const createUser = async(req, res) => {
+const createUser = async (req, res) => {
 
-    try{
-        
+    try {
+
         const { email, password } = req.body;
-        const existEmail = await User.findOne({email});
+        const existEmail = await User.findOne({ email });
 
         //VERIFY EMAIL
-        if(existEmail){
+        if (existEmail) {
             return res.status(400).json({
-                ok:false,
+                ok: false,
                 message: "This email already exists."
             });
         }
@@ -43,21 +74,23 @@ const createUser = async(req, res) => {
 
         //ENCRYPT
         const salt = bcrypt.genSaltSync();
-        user.password = bcrypt.hashSync( password, salt );
+        user.password = bcrypt.hashSync(password, salt);
 
         //SAVE USER
         await user.save();
-        
+
+        const expire = '12h'
+        //GENERATE TOKEN
+        const token = await generatorJWT(user.id, user.role, expire);
         res.json({
             ok: true,
-            user
+            user,
+            token
         });
-        
-    } catch(err){
 
-        console.log(err);
+    } catch (err) {
         res.status(500).json({
-            ok:false,
+            ok: false,
             message: "Error Unexpected, check logs"
         });
 
@@ -66,15 +99,15 @@ const createUser = async(req, res) => {
 
 
 //UPDATE    
-const updateUser = async (req, res) =>{
+const updateUser = async (req, res) => {
 
-    try{
-        
-        const id = req.params.id;
-        const userDB = await User.findById( id );
+    try {
+
+        const id = req.id
+        const userDB = await User.findById(id);
 
         //VERIFY USER
-        if(!userDB){
+        if (!userDB) {
             return res.status(404).json({
                 ok: false,
                 message: "User not found"
@@ -83,17 +116,16 @@ const updateUser = async (req, res) =>{
 
         //UPDATE USER
         const { password, google, ...field } = req.body;
-        const userUpdate = await User.findByIdAndUpdate( id, field, { new : true } );
-        
+        const userUpdate = await User.findByIdAndUpdate(id, field, { new: true });
+
         res.json({
-            ok:true,
+            ok: true,
             user: userUpdate
         });
 
-    }catch(err){
-        console.log(err);
+    } catch (err) {
         res.status(500).json({
-            ok:false,
+            ok: false,
             message: "Error Unexpected, check logs"
         });
     }
@@ -103,13 +135,13 @@ const updateUser = async (req, res) =>{
 //DELETE
 const deleteUser = async (req, res) => {
 
-    try{
-        
+    try {
+
         const id = req.params.id;
-        const userDB = await User.findById( id );
+        const userDB = await User.findById(id);
 
         //VERIFY USER
-        if(!userDB){
+        if (!userDB) {
             return res.status(404).json({
                 ok: false,
                 message: "User not found"
@@ -118,17 +150,16 @@ const deleteUser = async (req, res) => {
 
         //DELETE USER
         userDB.status = false;
-        await User.findByIdAndUpdate( id, userDB );
-        
+        await User.findByIdAndUpdate(id, userDB);
+
         res.json({
-            ok:true,
+            ok: true,
             message: "User deleted"
         });
 
-    }catch(err){
-        console.log(err);
+    } catch (err) {
         res.status(500).json({
-            ok:false,
+            ok: false,
             message: "Error Unexpected, check logs"
         });
     }
@@ -137,6 +168,7 @@ const deleteUser = async (req, res) => {
 
 
 module.exports = {
+    getUser,
     getAllUsers,
     createUser,
     updateUser,

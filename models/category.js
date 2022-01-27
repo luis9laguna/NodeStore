@@ -13,6 +13,10 @@ const CategorySchema = Schema(
             type: String,
             default: "https://res.cloudinary.com/faisca/image/upload/v1639115747/noimage_fa8wdn.jpg"
         },
+        slug: {
+            type: String,
+            required: true
+        },
         status: {
             type: Boolean,
             required: true,
@@ -23,11 +27,11 @@ const CategorySchema = Schema(
     { timestamps: true }
 );
 
-CategorySchema.method('toJSON', function(){
-    const {__v, ...object} = this.toObject();
+CategorySchema.method('toJSON', function () {
+    const { __v, ...object } = this.toObject();
 
 
     return object;
 });
 
-module.exports = model ('Category', CategorySchema);
+module.exports = model('Category', CategorySchema);
