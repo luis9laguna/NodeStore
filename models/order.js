@@ -34,7 +34,7 @@ const OrderSchema = Schema(
         orderItems: [
             {
                 type: Schema.Types.ObjectId,
-                ref: 'User',
+                ref: 'Order-Items',
                 required: true
             }
         ],

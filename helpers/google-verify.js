@@ -9,10 +9,11 @@ async function googleVerify(token = "") {
         audience: process.env.GOOGLE_ID
     });
 
-    const { name, email } = ticket.getPayload();
+    const { given_name, family_name, email } = ticket.getPayload();
 
     return {
-        name,
+        given_name,
+        family_name,
         email
     }
 

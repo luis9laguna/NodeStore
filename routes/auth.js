@@ -30,7 +30,7 @@ const forgotLimitter = rateLimit({
     max: 1,
     message: {
         code: 429,
-        message: "Wait for a moment before trying again"
+        message: "Too many tries, Wait for a moment before trying again"
     }
 });
 

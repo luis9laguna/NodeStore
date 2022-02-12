@@ -2,6 +2,8 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const { generatorJWT } = require('../helpers/jwt');
+const { v4: uuidv4 } = require('uuid');
+
 
 //CODE
 
@@ -24,8 +26,11 @@ const getUser = async (req, res) => {
             ok: true,
             user: {
                 name: userDB.name,
-                role: userDB.role
-            }
+                ref: userDB.ucode,
+                role: userDB.role,
+                email: userDB.email,
+                surname: userDB.surname
+            },
         });
 
     } catch (err) {
@@ -76,15 +81,22 @@ const createUser = async (req, res) => {
         const salt = bcrypt.genSaltSync();
         user.password = bcrypt.hashSync(password, salt);
 
+        //CREATING CODE
+        user.ucode = uuidv4();
+
         //SAVE USER
         await user.save();
 
-        const expire = '12h'
         //GENERATE TOKEN
+        const expire = '12h'
         const token = await generatorJWT(user.id, user.role, expire);
         res.json({
             ok: true,
-            user,
+            user: {
+                name: user.name,
+                ref: user.ucode,
+                role: user.role,
+            },
             token
         });
 

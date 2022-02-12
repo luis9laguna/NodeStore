@@ -1,5 +1,7 @@
 //REQUIRED
-const Like = require('../models/like');
+const User = require('../models/user');
+const Product = require('../models/product');
+const { sortProducts } = require('../helpers/sort-products');
 
 
 //CODE
@@ -8,24 +10,52 @@ const Like = require('../models/like');
 const getLikesByUser = async (req, res) => {
 
     try {
-        const id = req.params.id;
-        const likesUser = await Like.find({ "user": id })
 
+        //GETTING INFO FOR PAGINATION
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * pageSize;
 
-        if (likesUser == "") {
+        //SORTING SORT
+        const sort = req.query.sort
+        const { newSort } = sortProducts(sort)
+
+        //GET USER CODE
+        const userId = req.id;
+        const user = await User.findById(userId)
+        const uCode = user.ucode
+
+        //GET PRODUCTS
+        const products = await Product.find({ "likes": uCode }).skip(skip).limit(pageSize).sort(newSort);
+
+        if (products == "") {
             return res.status(404).json({
                 ok: false,
-                message: "This user doesnt have likes"
+                message: "This user doesn't have likes"
             });
+        }
+
+        //MORE INFO FOR PAGINATION
+        const total = await Product.find({ "likes": uCode }).countDocuments();
+        const pages = Math.ceil(total / pageSize)
+
+        //IN CASE FOR MORE PAGE THAT WE HAVE
+        if (page > pages) {
+            return res.status(404).json({
+                status: 'false',
+                message: "No page found"
+            })
         }
 
         res.json({
             ok: true,
-            likesUser
+            products,
+            count: products.length,
+            page,
+            pages
         });
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: 'Unexpected Error'
@@ -35,31 +65,32 @@ const getLikesByUser = async (req, res) => {
 
 
 //GIVE A LIKE
-const giveLike = async (req, res) => {
+const giveLikeAndDislike = async (req, res) => {
     try {
 
-        const data = new Like(req.body);
-        const user = req.body.user;
-        const product = req.body.product;
-        const like = await Like.find({ "product": product, "user": user });
+        //GET USER CODE
+        const userId = req.id;
+        const user = await User.findById(userId)
+        const uCode = user.ucode
 
-        //VALIDATION TO SEE IF A PRODUCT ALREADY HAVE A LIKE FOR THE SPECIFIC USER
-        if (like == "") {
+        //GET PRODUCT
+        const slug = req.params.slug;
+        const product = await Product.findOne({ "slug": slug });
 
-            //GIVING LIKE
-            await data.save();
+        const like = product.likes.includes(uCode)
 
-            res.json({
-                ok: true,
-                data
-            });
+        //LOOKING FOR LIKE
+        if (like) product.likes.remove(uCode)
+        else product.likes.push(uCode)
 
-        } else {
-            return res.status(404).json({
-                ok: false,
-                message: "This user has already liked this product"
-            });
-        }
+
+        //SAVE
+        product.save()
+
+        res.json({
+            ok: true,
+            product
+        });
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -69,64 +100,33 @@ const giveLike = async (req, res) => {
     }
 }
 
-//GIVE A DISLIKE
-const giveDislike = async (req, res) => {
+//GET ALL LIKES BY USER
+const getProductsWithMoreLikes = async (req, res) => {
+
     try {
 
-        const id = req.params.id;
-        const like = await Like.findById(id);
-
-        //VERIFY LIKE
-
-        if (like == "" || !like) {
-            return res.status(404).json({
-                ok: false,
-                message: 'Id not found'
-            });
-        }
-
-        await Like.findByIdAndDelete(id);
+        const products = await Product.find().sort({ likes: '-1' })
 
         res.json({
             ok: true,
-            message: "Like eliminated"
+            products
         });
 
     } catch (error) {
         console.log(error);
         res.status(500).json({
             ok: false,
-            message: "Error Unexpected, check logs"
+            message: 'Unexpected Error'
         });
     }
 }
 
 
-//TOTAL LIKES BY PRODUCT
 
-const likesProduct = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const LikeDB = await Like.countDocuments({ "product": id })
-
-        res.json({
-            ok: true,
-            LikeDB
-        });
-
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            ok: false,
-            message: "Error Unexpected, check logs"
-        });
-    }
-}
 
 module.exports = {
     getLikesByUser,
-    giveLike,
-    giveDislike,
-    likesProduct
+    giveLikeAndDislike,
+    getProductsWithMoreLikes
+
 }

@@ -1,21 +1,48 @@
 //REQUIRED
+const { sortProducts } = require('../helpers/sort-products');
 const Product = require('../models/product');
-
+const slugify = require('slugify')
 //CODE
 
 //GET ALL
 const getProduct = async (req, res) => {
     try {
 
-        const products = await Product.find({ "status": true }).sort('name');
+        //GETTING INFO FOR PAGINATION
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * pageSize;
+
+        //SORTING SORT
+        const sort = req.query.sort
+        const { newSort } = sortProducts(sort)
+
+        //GETTING PRODUCTS FROM THE DB
+        const products = await Product.find({ "status": true }).sort(newSort)
+            .skip(skip).limit(pageSize);
+
+
+        //MORE INFO FOR PAGINATION
+        const total = await Product.countDocuments();
+        const pages = Math.ceil(total / pageSize)
+
+        //IN CASE FOR MORE PAGE THAT WE HAVE
+        if (page > pages) {
+            return res.status(404).json({
+                status: 'false',
+                message: "No page found"
+            })
+        }
 
         res.json({
             ok: true,
-            products
+            products,
+            count: products.length,
+            page,
+            pages
         });
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -35,7 +62,6 @@ const getNewestProduct = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -47,9 +73,9 @@ const getNewestProduct = async (req, res) => {
 const getProductBySlug = async (req, res) => {
     try {
         const slug = req.params.slug;
-        const product = await Product.findOne({ 'slug': slug });
+        const productDB = await Product.findOne({ 'slug': slug, 'status': true }).populate('category');
 
-        if (!product) {
+        if (!productDB) {
             return res.status(404).json({
                 ok: false,
                 message: 'Product not found'
@@ -58,11 +84,18 @@ const getProductBySlug = async (req, res) => {
 
         res.json({
             ok: true,
-            product
+            product: {
+                name: productDB.name,
+                description: productDB.description,
+                price: productDB.price,
+                image: productDB.image,
+                likes: productDB.likes,
+                stock: productDB.stock,
+                category: productDB.category.slug
+            }
         });
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -86,6 +119,7 @@ const createProduct = async (req, res) => {
             });
         }
 
+
         //PRODUCT
         let product = new Product(req.body);
 
@@ -102,7 +136,6 @@ const createProduct = async (req, res) => {
         })
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: 'Unexpected Error'
@@ -171,7 +204,6 @@ const deleteProduct = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"

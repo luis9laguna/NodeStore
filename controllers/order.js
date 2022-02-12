@@ -8,23 +8,46 @@ const { sendEmail } = require('../helpers/send-email');
 
 //CODE
 
-//GET
-const getOrder = async (req, res) => {
+//GET ORDER BY CODE
+const getOrderByCode = async (req, res) => {
     try {
 
-        const id = req.params.id;
-        const order = await Order.findById(id);
+        const code = req.body.code;
+        const orderDB = await Order.findOne({ code }).populate({
+            path: 'orderItems',
+            populate: { path: 'product' }
+        }).populate('address');
 
-        if (!order) {
+        if (!orderDB) {
             return res.status(404).json({
                 ok: false,
                 message: 'Order not found'
             });
         }
 
+        //NEW ORDER ITEMS
+        let newOrderItems = []
+        orderDB.orderItems.map(item => {
+            newOrderItems.push({
+                product: {
+                    name: item.product.name,
+                    price: item.product.price,
+                    image: item.product.image
+                },
+                quantity: item.quantity
+            })
+        })
+
         res.json({
             ok: true,
-            order
+            order: {
+                address: orderDB.address.address,
+                status: orderDB.status,
+                total: orderDB.total,
+                shipping: orderDB.shipping,
+                updated: orderDB.updatedAt,
+                orderItems: newOrderItems
+            }
         });
 
     } catch (error) {
@@ -36,25 +59,38 @@ const getOrder = async (req, res) => {
     }
 }
 
-//GET ORDER BY CODE IN CASE OF NOT LOGGED USER
-const getOrderByCode = async (req, res) => {
+//GET ORDERS BY USER
+const getOrdersByUser = async (req, res) => {
     try {
 
-        const code = req.body.code;
-        const order = await Order.findOne({ code });
+        //GETTING INFO FOR PAGINATION
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * pageSize;
 
-        if (!order) {
+        //GETTING INFORMATION FROM THE DB
+        const user = req.id;
+        const orders = await Order.find({ user }, 'code total status createdAt').sort({ 'updatedAt': -1 })
+            .skip(skip).limit(pageSize);
+
+        //MORE INFO FOR PAGINATION
+        const total = await Order.find({ user }, 'code total status createdAt').sort({ 'updatedAt': -1 }).countDocuments();
+        const pages = Math.ceil(total / pageSize)
+
+        //IN CASE FOR MORE PAGE THAT WE HAVE
+        if (page > pages) {
             return res.status(404).json({
-                ok: false,
-                message: 'Order not found'
-            });
+                status: 'false',
+                message: "No page found"
+            })
         }
-
-        const status = order.status
 
         res.json({
             ok: true,
-            status
+            orders,
+            count: orders.length,
+            page,
+            pages
         });
 
     } catch (error) {
@@ -70,7 +106,7 @@ const getOrderByCode = async (req, res) => {
 const getAllOrders = async (req, res) => {
     try {
 
-        const orders = await Order.find().sort({ 'createdAt': -1 });
+        const orders = await Order.find().sort({ 'updatedAt': -1 });
 
         res.json({
             ok: true,
@@ -118,7 +154,7 @@ const completedInformation = async (req, res) => {
         const addressessUser = completedOrders.map((array) => {
             return array.address.address;
         });
-        
+
         const province = addressessUser.filter(function (p) {
             return p.state == "metropolitana"
         });
@@ -159,26 +195,6 @@ const completedInformation = async (req, res) => {
     }
 }
 
-//GET ORDERS BY USER
-const getOrdersByUser = async (req, res) => {
-    try {
-
-        const user = req.params.id;
-        const orders = await Order.find({ user }).sort({ 'createdAt': -1 });
-
-        res.json({
-            ok: true,
-            orders
-        });
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            ok: false,
-            message: "Unexpected Error"
-        });
-    }
-}
 
 //CREATE
 const createOrder = async (req, res) => {
@@ -292,9 +308,8 @@ const updateOrder = async (req, res) => {
 
 
 module.exports = {
-    getOrder,
-    getAllOrders,
     getOrderByCode,
+    getAllOrders,
     completedInformation,
     getOrdersByUser,
     createOrder,

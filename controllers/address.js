@@ -1,24 +1,48 @@
 //REQUIRED
-const Address = require('../models/address'); 
+const Address = require('../models/address');
+const User = require('../models/user')
 
 //CODE
 
 //GET
-const getAddressesByUser = async(req, res) =>{
+const getAddressesByUser = async (req, res) => {
 
-    try{
+    try {
 
-        const id = req.params.id;
-        const addresses = await Address.find({"user": id});
-    
+        //GET DATA FROM THE DB
+        const userId = req.id;
+        const addresses = await Address.find({ 'user': userId }).populate('user', 'address');
+
         res.json({
             ok: true,
             addresses
         });
 
-    }catch(err){
+    } catch (err) {
 
-        console.log(err);
+        res.status(500).json({
+            ok: false,
+            message: "Unexpected Error"
+        });
+    }
+}
+
+//GET BY ID
+const getAddressByID = async (req, res) => {
+
+    try {
+
+        //GET DATA FROM THE DB
+        const addressId = req.params.id;
+        const address = await Address.findById(addressId)
+
+        res.json({
+            ok: true,
+            address: address.address
+        });
+
+    } catch (err) {
+
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -27,27 +51,41 @@ const getAddressesByUser = async(req, res) =>{
 }
 
 //CREATE
-const createAddress = async(req, res) => {
+const createAddress = async (req, res) => {
 
-    try{
-        
+    try {
+        //CHECK FOR LIMIT OF ADDRESSES
+        const userId = req.id;
+        const addresses = await Address.find({ 'user': userId })
+
+        if (addresses.length >= 4) {
+            return res.status(404).json({
+                ok: false,
+                message: "You can't create more than 4 addresses per user"
+            });
+        }
+
         //CREATE ADDRESS
-        const address = new Address(req.body);
+        let address = new Address(req.body);
+        address.user = userId
 
 
         //SAVE ADDRESS
         await address.save();
-        
+
+        //UPDATING DEFAULT USER ADDRESS
+        await User.findByIdAndUpdate(req.id, { address: address.id })
+
+
         res.json({
             ok: true,
             address
         });
-        
-    } catch(err){
 
-        console.log(err);
+    } catch (err) {
+
         res.status(500).json({
-            ok:false,
+            ok: false,
             message: "Error Unexpected, check logs"
         });
 
@@ -56,15 +94,16 @@ const createAddress = async(req, res) => {
 
 
 //UPDATE    
-const updateAddress = async (req, res) =>{
+const updateAddress = async (req, res) => {
 
-    try{
-        
+    try {
+
+        //GET DATA FROM THE DB
         const id = req.params.id;
         const addressDB = await Address.findById(id);
 
         //VERIFY ADDRESS
-        if(!addressDB){
+        if (!addressDB) {
             return res.status(404).json({
                 ok: false,
                 message: "Address not found"
@@ -72,18 +111,53 @@ const updateAddress = async (req, res) =>{
         }
 
         //UPDATE ADDRESS
-        const { __v, user, ...field } = req.body;
+        const { user, ...field } = req.body;
         const addressUpdate = await Address.findByIdAndUpdate(id, field, { new: true });
-        
+
+        //UPDATING DEFAULT USER ADDRESS
+        await User.findByIdAndUpdate(req.id, { address: id })
+
         res.json({
-            ok:true,
+            ok: true,
             address: addressUpdate
         });
 
-    }catch(err){
-        console.log(err);
+    } catch (err) {
         res.status(500).json({
-            ok:false,
+            ok: false,
+            message: "Error Unexpected, check logs"
+        });
+    }
+}
+
+//MAKE ADDRESS DEFAULT    
+const makeAddressDefault = async (req, res) => {
+
+    try {
+
+        //GET DATA FROM THE DB
+        const id = req.params.id;
+        const addressDB = await Address.findById(id);
+
+        //VERIFY ADDRESS JUST IN CASE
+        if (!addressDB) {
+            return res.status(404).json({
+                ok: false,
+                message: "Address not found"
+            });
+        }
+
+        //UPDATING DEFAULT USER ADDRESS
+        await User.findByIdAndUpdate(req.id, { address: id })
+
+        res.json({
+            ok: true,
+            message: 'Default Address Updated'
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            ok: false,
             message: "Error Unexpected, check logs"
         });
     }
@@ -93,30 +167,30 @@ const updateAddress = async (req, res) =>{
 //DELETE
 const deleteAddress = async (req, res) => {
 
-    try{
-        
+    try {
+
+        //GET DATA FROM THE DB
         const id = req.params.id;
         const addressDB = await Address.findById(id);
 
         //VERIFY ADDRESS
-        if(!addressDB){
+        if (!addressDB) {
             return res.status(404).json({
                 ok: false,
                 message: "Address not found"
             });
         }
 
-        await Address.findByIdAndRemove( id, addressDB );
-        
+        await Address.findByIdAndRemove(id, addressDB);
+
         res.json({
-            ok:true,
+            ok: true,
             message: "Address deleted"
         });
 
-    }catch(err){
-        console.log(err);
+    } catch (err) {
         res.status(500).json({
-            ok:false,
+            ok: false,
             message: "Error Unexpected, check logs"
         });
     }
@@ -126,7 +200,9 @@ const deleteAddress = async (req, res) => {
 
 module.exports = {
     getAddressesByUser,
+    getAddressByID,
     createAddress,
     updateAddress,
+    makeAddressDefault,
     deleteAddress
 }

@@ -12,6 +12,10 @@ const Address = Schema({
 
     address: {
 
+        addressname: {
+            type: String,
+            required: true
+        },
         name: {
             type: String,
             required: true
@@ -20,7 +24,7 @@ const Address = Schema({
             type: Number,
             required: true
         },
-        rut: {
+        id: {
             type: String,
             required: true
         },
@@ -44,7 +48,7 @@ const Address = Schema({
             type: Number,
             required: true
         },
-        department: {
+        apartment: {
             type: Number
         }
     }

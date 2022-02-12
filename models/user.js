@@ -27,6 +27,14 @@ const UserSchema = Schema(
             default: 'USER_ROLE',
             enum: ['SUPER_ROLE', 'ADMIN_ROLE', 'USER_ROLE']
         },
+        ucode: {
+            type: String,
+            required: true
+        },
+        address: {
+            type: Schema.Types.ObjectId,
+            ref: 'address'
+        },
         google: {
             type: Boolean,
             default: false

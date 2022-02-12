@@ -6,6 +6,8 @@ const jwt = require('jsonwebtoken');
 const { generatorJWT } = require('../helpers/jwt');
 const { googleVerify } = require('../helpers/google-verify');
 const { sendEmail } = require('../helpers/send-email');
+const { v4: uuidv4 } = require('uuid');
+
 
 //CODE
 const login = async (req, res) => {
@@ -40,7 +42,8 @@ const login = async (req, res) => {
             token,
             user: {
                 name: userDB.name,
-                role: userDB.role
+                ref: userDB.ucode,
+                role: userDB.role,
             }
         });
 
@@ -59,17 +62,19 @@ const googleSignIn = async (req, res) => {
 
     try {
 
-        const { name, email } = await googleVerify(tokenGoogle);
+        const { given_name, family_name, email } = await googleVerify(tokenGoogle);
         let user = await User.findOne({ email });
 
-
         if (!user) {
-            // CREATE
+
+            // CREATE USER
             const data = {
-                name,
+                name: given_name,
+                surname: family_name,
                 email,
                 password: 'none',
-                google: true
+                google: true,
+                ucode: uuidv4()
             };
 
             user = new User(data);
@@ -91,7 +96,12 @@ const googleSignIn = async (req, res) => {
 
         res.json({
             message: 'User logged',
-            token
+            token,
+            user: {
+                name: user.name,
+                ref: user.ucode,
+                role: user.role
+            }
         });
 
     } catch (error) {
@@ -131,7 +141,8 @@ const changePassword = async (req, res) => {
         await User.findByIdAndUpdate(id, { password: newPasswordHash });
 
         res.json({
-            message: 'Password changed successfully'
+            ok: true,
+            message: "Password changed successfully"
         });
 
     } catch (error) {
@@ -144,10 +155,7 @@ const changePassword = async (req, res) => {
 
 //PETITION RESET PASSWORD
 const forgetEmail = async (req, res) => {
-
-
     try {
-
         const email = req.body.email;
 
         //VALIDATION OF USER
@@ -192,7 +200,8 @@ const forgetEmail = async (req, res) => {
         // await sendEmail(email, subject, text);
 
         res.json({
-            message: 'Email send successfully'
+            ok: true,
+            message: "Email send successfully"
         });
 
     } catch (error) {
@@ -206,7 +215,6 @@ const forgetEmail = async (req, res) => {
 
 //RESET PASSWORD
 const resetPassword = async (req, res) => {
-
 
     try {
 

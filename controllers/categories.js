@@ -3,6 +3,7 @@ const Category = require('../models/category');
 const Product = require('../models/product');
 const slugify = require('slugify')
 const { v4: uuidv4 } = require('uuid');
+const { sortProducts } = require('../helpers/sort-products');
 const cloudinary = require('cloudinary').v2
 
 //CODE
@@ -32,14 +33,40 @@ const getProductByCategory = async (req, res) => {
 
     try {
 
+        //GETTING INFO FOR PAGINATION
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * pageSize;
+
+        //SORTING SORT
+        const sort = req.query.sort
+        const { newSort } = sortProducts(sort)
+
+        //GETTING CATEGORY AND PRODUCTS FROM THE DB
         const slug = req.params.slug;
         const category = await Category.findOne({ 'slug': slug })
-        const products = await Product.find({ "category": category.id, "status": true }).sort('name');
+        const products = await Product.find({ "category": category.id, "status": true })
+            .select(['-cost']).sort(newSort).skip(skip).limit(pageSize);
+
+        //MORE INFO FOR PAGINATION
+        const total = await Product.find({ "category": category.id, "status": true }).countDocuments();
+        const pages = Math.ceil(total / pageSize)
+
+        //IN CASE FOR MORE PAGE THAT WE HAVE
+        if (page > pages) {
+            return res.status(404).json({
+                status: 'false',
+                message: "No page found"
+            })
+        }
 
         res.json({
             ok: true,
             category,
-            products
+            products,
+            count: products.length,
+            page,
+            pages
         });
 
     } catch (error) {
@@ -57,7 +84,7 @@ const createCategory = async (req, res) => {
     try {
 
         const { name } = req.body;
-        const existCategory = await Category.findOne({ name });
+        const existCategory = await Category.findOne({ name, 'status': true });
 
         //VERIFY CATEGORY
         if (existCategory) {
