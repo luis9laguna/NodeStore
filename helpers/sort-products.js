@@ -1,4 +1,3 @@
-
 function sortProducts(sort) {
 
     let newSort = null

@@ -14,20 +14,12 @@ const login = async (req, res) => {
     try {
 
         const { email, password } = req.body;
-        const userDB = await User.findOne({ email });
-
-        //VERIFY EMAIL
-        if (!userDB) {
-            return res.status(404).json({
-                ok: false,
-                message: 'Email not found'
-            });
-        }
+        const userDB = await User.findOne({ email, status: true });
 
         //VERIFY PASSWORD
         const validPassword = bcrypt.compareSync(password, userDB.password);
 
-        if (!validPassword) {
+        if (!validPassword || !userDB) {
             return res.status(400).json({
                 ok: false,
                 message: 'Invalid Email or Password'

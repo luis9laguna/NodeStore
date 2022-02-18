@@ -106,11 +106,37 @@ const getOrdersByUser = async (req, res) => {
 const getAllOrders = async (req, res) => {
     try {
 
-        const orders = await Order.find().sort({ 'updatedAt': -1 });
+        //GETTING INFO FOR PAGINATION
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * pageSize;
+
+        //SORT
+        const reqSort = req.query.sort
+        const sort = reqSort === 'all' ? { $gte: 0 } : reqSort
+
+        //GETTING ORDERS FROM DB
+        const orders = await Order.find({ status: sort }).sort({ 'updatedAt': -1 })
+            .skip(skip).limit(pageSize);
+
+        //MORE INFO FOR PAGINATION
+        const total = await Order.find({ status: sort }).sort({ 'updatedAt': -1 }).countDocuments();
+        const pages = Math.ceil(total / pageSize)
+
+        //IN CASE FOR MORE PAGE THAT WE HAVE
+        if (page > pages) {
+            return res.status(404).json({
+                status: 'false',
+                message: "No page found"
+            })
+        }
 
         res.json({
             ok: true,
-            orders
+            orders,
+            count: orders.length,
+            page,
+            pages
         });
 
     } catch (error) {
@@ -123,7 +149,7 @@ const getAllOrders = async (req, res) => {
 }
 
 
-//GET COMPLETED INFORMATION
+//GET ORDERS COMPLETED INFORMATION
 const completedInformation = async (req, res) => {
     try {
 
@@ -200,63 +226,75 @@ const completedInformation = async (req, res) => {
 const createOrder = async (req, res) => {
     try {
 
-        //CODE ITEMS ORDER
-        const orderItemsIds = await Promise.all(req.body.orderItems.map(async (orderItem) => {
-            let newOrderItem = new OrderItem({
-                product: orderItem.product,
-                quantity: orderItem.quantity,
-            });
+        //ID USER
+        const idUser = req.id
 
-            //SAVE ORDER ITEM
-            newOrderItem = await newOrderItem.save();
+        //CODE ITEMS ORDER
+        const orderItemsInfo = await Promise.all(req.body.orderItems.map(async (orderItem) => {
 
             //DECREASE THE STOCK 
-            const productDB = await Product.findById(orderItem.product);
+            let productDB = await Product.findById(orderItem.product);
             productDB.stock = productDB.stock - orderItem.quantity;
             if (productDB.stock < 0) {
                 res.status(500).json({
                     ok: false,
                     message: 'There arent that amount of products'
                 });
-            } else {
-                await productDB.save();
-                return newOrderItem._id;
+            }
+
+            //CREATING NEW ORDER ITEM
+            const newOrderItem = new OrderItem({
+                product: orderItem.product,
+                quantity: orderItem.quantity,
+            });
+
+            //UPDATE STOCK AND SAVE ORDER ITEM
+            await productDB.save();
+            await newOrderItem.save();
+
+            return {
+                idItem: newOrderItem._id,
+                totalPricesInfo: productDB.price * orderItem.quantity,
+                totalCostsInfo: productDB.cost * orderItem.quantity
             }
         }));
 
-        // CODE TOTAL PRICE
-        const orderItemsIdsResolved = orderItemsIds;
-
-        const totalPricesArray = await Promise.all(orderItemsIdsResolved.map(async (orderItemId) => {
-            const orderItem = await OrderItem.findById(orderItemId).populate('product', 'price');
-            const totalPrice = orderItem.product.price * orderItem.quantity;
-            return totalPrice
-        }));
-
-        const totalCostArray = await Promise.all(orderItemsIdsResolved.map(async (orderItemId) => {
-            const orderItem = await OrderItem.findById(orderItemId).populate('product', 'cost');
-            const ArrayCost = orderItem.product.cost * orderItem.quantity;
-            return ArrayCost
-        }));
-
-        const totalCost = totalCostArray.reduce((a, b) => a + b, 0);
+        //GETTING TOTAL PRICE
+        const totalPricesArray = orderItemsInfo.map(orderItemInfo => {
+            return orderItemInfo.totalPricesInfo
+        });
         const totalPrice = totalPricesArray.reduce((a, b) => a + b, 0);
+
+        //GETTING TOTAL COST
+        const totalCostsArray = orderItemsInfo.map(orderItemInfo => {
+            return orderItemInfo.totalCostsInfo
+        });
+        const totalCost = totalCostsArray.reduce((a, b) => a + b, 0);
+
+        //GETTING IDS IN ORDERITEMS
+        const idItemsArray = orderItemsInfo.map(orderItemInfo => {
+            return orderItemInfo.idItem
+        });
 
         //ORDER
         let order = new Order(req.body);
         order.code = uuidv4();
-        order.orderItems = orderItemsIdsResolved;
+        order.user = idUser;
+        order.orderItems = idItemsArray;
         order.total = totalPrice;
         order.totalCost = totalCost;
-        orderAndShipping = totalPrice + 3500;
+        orderAndShipping = totalPrice + 15;
 
         //SAVE ORDER
         await order.save();
 
+        //SHOWING NULL IN THE RESPONSE COST
+        order.totalCost = null;
+
+
         //SEND EMAIL
         // await sendEmail(email, subject, text, code);
 
-        order.totalCost = 0;
         res.json({
             ok: true,
             order,
@@ -295,7 +333,7 @@ const updateOrder = async (req, res) => {
 
         res.json({
             ok: true,
-            order: orderUpdate
+            message: 'Order has been updated'
         });
 
     } catch (error) {

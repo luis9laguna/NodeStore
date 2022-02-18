@@ -1,5 +1,7 @@
 //REQUIRED
 const { Schema, model } = require('mongoose');
+const { v4: uuidv4 } = require('uuid');
+
 
 //CODE
 const UserSchema = Schema(
@@ -29,7 +31,8 @@ const UserSchema = Schema(
         },
         ucode: {
             type: String,
-            required: true
+            required: true,
+            default: uuidv4()
         },
         address: {
             type: Schema.Types.ObjectId,

@@ -211,11 +211,40 @@ const deleteProduct = async (req, res) => {
     }
 }
 
+
+//CHECK STOCK
+const checkStock = async (req, res) => {
+    try {
+
+        const slug = req.body.slug;
+        const productDB = await Product.findOne({ 'slug': slug, 'status': true })
+
+        if (!productDB) {
+            return res.status(404).json({
+                ok: false,
+                message: 'Product not found'
+            });
+        }
+
+        res.json({
+            ok: true,
+            stock: productDB.stock
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            ok: false,
+            message: "Error Unexpected, check logs"
+        });
+    }
+}
+
 module.exports = {
     getProduct,
     getNewestProduct,
     getProductBySlug,
     createProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    checkStock
 }

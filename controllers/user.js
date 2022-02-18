@@ -2,7 +2,6 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const { generatorJWT } = require('../helpers/jwt');
-const { v4: uuidv4 } = require('uuid');
 
 
 //CODE
@@ -29,7 +28,8 @@ const getUser = async (req, res) => {
                 ref: userDB.ucode,
                 role: userDB.role,
                 email: userDB.email,
-                surname: userDB.surname
+                surname: userDB.surname,
+                address: userDB.address
             },
         });
 
@@ -44,11 +44,34 @@ const getUser = async (req, res) => {
 //GET ALL USERS
 const getAllUsers = async (req, res) => {
     try {
-        const allUsers = await User.countDocuments();
+
+        //GETTING INFO FOR PAGINATION
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * pageSize;
+
+        //GETTING USERS FROM DB
+        const allUsers = await User.find({ role: 'USER_ROLE', status: true })
+            .skip(skip).limit(pageSize);
+
+        //MORE INFO FOR PAGINATION
+        const total = await User.find({ role: 'USER_ROLE', status: true }).countDocuments();
+        const pages = Math.ceil(total / pageSize)
+
+        //IN CASE FOR MORE PAGE THAT WE HAVE
+        if (page > pages) {
+            return res.status(404).json({
+                status: 'false',
+                message: "No page found"
+            })
+        }
 
         res.json({
             ok: true,
-            total: allUsers
+            allUsers,
+            count: allUsers.length,
+            page,
+            pages
         });
 
     } catch (err) {
@@ -80,9 +103,6 @@ const createUser = async (req, res) => {
         //ENCRYPT
         const salt = bcrypt.genSaltSync();
         user.password = bcrypt.hashSync(password, salt);
-
-        //CREATING CODE
-        user.ucode = uuidv4();
 
         //SAVE USER
         await user.save();

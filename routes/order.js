@@ -38,7 +38,6 @@ router.get('/', [
 //POST
 router.post('/',
     [checkJWT,
-        check('user', 'User is required').isMongoId(),
         check('address', 'Address is required').isMongoId(),
         checkParams
     ], createOrder);

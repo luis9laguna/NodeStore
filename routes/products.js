@@ -8,7 +8,8 @@ const { getProduct,
     getProductBySlug,
     createProduct,
     updateProduct,
-    deleteProduct } = require('../controllers/products');
+    deleteProduct,
+    checkStock } = require('../controllers/products');
 const { checkParams } = require('../middlewares/check-params');
 const { checkJWT, checkSuper } = require('../middlewares/check-jwt');
 
@@ -52,6 +53,9 @@ router.put('/:id',
 
 //DELETE
 router.delete('/:id', deleteProduct);
+
+//CHECKSTOCK
+router.get('/stock', checkStock)
 
 
 module.exports = router;

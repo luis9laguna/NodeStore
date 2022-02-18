@@ -58,10 +58,10 @@ const createAddress = async (req, res) => {
         const userId = req.id;
         const addresses = await Address.find({ 'user': userId })
 
-        if (addresses.length >= 4) {
+        if (addresses.length >= 3) {
             return res.status(404).json({
                 ok: false,
-                message: "You can't create more than 4 addresses per user"
+                message: "You can't create more than 3 addresses per user"
             });
         }
 
@@ -169,8 +169,11 @@ const deleteAddress = async (req, res) => {
 
     try {
 
-        //GET DATA FROM THE DB
+        //GET DATA FROM THE REQ
         const id = req.params.id;
+        const userId = req.id;
+
+        //GET DATA FROM THE DB
         const addressDB = await Address.findById(id);
 
         //VERIFY ADDRESS
@@ -181,11 +184,22 @@ const deleteAddress = async (req, res) => {
             });
         }
 
-        await Address.findByIdAndRemove(id, addressDB);
+        //GET USER
+        const user = await User.findById(userId)
+
+        //REMOVING ADDRESS FROM DB
+        await Address.findByIdAndRemove(id);
+
+        //DELETING ADDRESS FROM USER
+        if (user.address == id) {
+            user.address = null;
+            user.save()
+        }
 
         res.json({
             ok: true,
-            message: "Address deleted"
+            message: "Address deleted",
+            user
         });
 
     } catch (err) {
