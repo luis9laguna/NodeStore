@@ -9,39 +9,34 @@ const bcrypt = require('bcryptjs');
 const getAdmins = async (req, res) => {
 
     try {
+        //DB QUERY
+        const query = User.find({ status: true, role: 'ADMIN_ROLE' })
 
-        //GETTING INFO FOR PAGINATION
-        const page = parseInt(req.query.page) || 1;
-        const pageSize = parseInt(req.query.limit) || 10;
+        //REQUESTS
+        const page = parseInt(req.query.page) || 1
+        const pageSize = parseInt(req.query.limit) || 10
+
+        //GETTING PAGINATION AND DATA
         const skip = (page - 1) * pageSize;
-
-        //GETTING ADMINS FROM DB
-        const allUsers = await User.find({ status: true, role: 'ADMIN_ROLE' })
-            .skip(skip).limit(pageSize);
-
-        //MORE INFO FOR PAGINATION
-        const total = await User.find({ status: true, role: 'ADMIN_ROLE' }).countDocuments();
+        let total = await query
+        total = total.length
         const pages = Math.ceil(total / pageSize)
 
-        //IN CASE FOR MORE PAGE THAT WE HAVE
-        if (page > pages) {
-            return res.status(404).json({
-                status: 'false',
-                message: "No page found"
-            })
-        }
+        //IF NO DATA
+        if (page > pages) return res.status(404).json({ status: 'false', message: "Page/Data not found" })
+
+        //GETTING DATA FROM THE DB
+        let data = await query.skip(skip).limit(pageSize).clone()
 
         res.json({
             ok: true,
-            allUsers,
-            count: allUsers.length,
+            allUsers: data,
+            count: data.length,
             page,
             pages
         });
 
-    } catch (err) {
-
-        console.log(err);
+    } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -54,7 +49,6 @@ const getAdmins = async (req, res) => {
 const createAdmin = async (req, res) => {
 
     try {
-
         const { email, password } = req.body;
         const existEmail = await User.findOne({ email });
 
@@ -81,9 +75,7 @@ const createAdmin = async (req, res) => {
             user
         });
 
-    } catch (err) {
-
-        console.log(err);
+    } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"
@@ -97,7 +89,6 @@ const createAdmin = async (req, res) => {
 const updateAdmin = async (req, res) => {
 
     try {
-
         const id = req.params.id;
         const userDB = await User.findById(id);
 
@@ -118,8 +109,7 @@ const updateAdmin = async (req, res) => {
             admin: userUpdate
         });
 
-    } catch (err) {
-        console.log(err);
+    } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"
@@ -132,7 +122,6 @@ const updateAdmin = async (req, res) => {
 const deleteAdmin = async (req, res) => {
 
     try {
-
         const id = req.params.id;
         const userDB = await User.findById(id);
 
@@ -152,8 +141,7 @@ const deleteAdmin = async (req, res) => {
             message: "User deleted"
         });
 
-    } catch (err) {
-        console.log(err);
+    } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"

@@ -3,21 +3,22 @@ const { Router } = require('express');
 const { check } = require('express-validator');
 
 //FUNCTIONS
-const { getProduct,
+const { getAllProducts,
     getNewestProduct,
     getProductBySlug,
     createProduct,
     updateProduct,
     deleteProduct,
-    checkStock } = require('../controllers/products');
+    checkStock,
+    updateStock } = require('../controllers/products');
 const { checkParams } = require('../middlewares/check-params');
-const { checkJWT, checkSuper } = require('../middlewares/check-jwt');
+const { checkJWT, checkSuper, checkAdmin } = require('../middlewares/check-jwt');
 
 //CODE
 const router = Router();
 
 //GET ALL
-router.get('/', getProduct);
+router.get('/', getAllProducts);
 
 //GET NEWEST PRODUCTS
 router.get('/newest', getNewestProduct);
@@ -40,7 +41,8 @@ router.post('/',
 
 //PUT
 router.put('/:id',
-    [checkJWT,
+    [
+        checkJWT,
         checkSuper,
         check('name', 'Name is required').not().isEmpty().trim().escape(),
         check('category', 'Category is required').isMongoId(),
@@ -55,7 +57,16 @@ router.put('/:id',
 router.delete('/:id', deleteProduct);
 
 //CHECKSTOCK
-router.get('/stock', checkStock)
+router.get('/stock/:slug', checkStock)
+
+
+//CHECKSTOCK
+router.put('/stock/:id',
+    [
+        checkJWT,
+        checkAdmin,
+        check('stock', 'Stock is required').not().isEmpty(),
+    ], updateStock)
 
 
 module.exports = router;

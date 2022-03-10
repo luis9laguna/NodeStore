@@ -5,15 +5,12 @@ function sortProducts(sort) {
     //SORTING SORT
     if (sort === 'name') newSort = { name: 'asc' }
     else if (sort === 'popularity') newSort = { likes: 'desc' }
-    else if (sort === 'newest') newSort = { created: 'asc' }
+    else if (sort === 'newest') newSort = { createdAt: 'desc' }
     else if (sort === 'priceAsc') newSort = { price: 'asc' }
     else if (sort === 'priceDesc') newSort = { price: 'desc' }
-    else sort = { name: 'asc' }
+    else newSort = { name: 'asc' }
 
-    return {
-        newSort
-    }
-
+    return newSort
 
 }
 

@@ -26,7 +26,6 @@ dbConnection();
 
 
 //ROUTES
-
 app.use('/api/category', require('./routes/categories'));
 app.use('/api/product', require('./routes/products'));
 app.use('/api/search', require('./routes/search'));
@@ -38,6 +37,7 @@ app.use('/api/cart', require('./routes/session-cart'));
 app.use('/api/order', require('./routes/order'));
 app.use('/api/like', require('./routes/like'));
 app.use('/api/upload', require('./routes/upload'));
+app.use('/api/dashboard', require('./routes/dashboard'));
 
 
 //LISTEN

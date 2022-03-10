@@ -19,7 +19,7 @@ router.get('/', checkJWT, getLikesByUser);
 router.get('/products', getProductsWithMoreLikes)
 
 //GIVE A LIKE
-router.post('/:slug', checkJWT, giveLikeAndDislike);
+router.post('/:id', checkJWT, giveLikeAndDislike);
 
 
 module.exports = router;

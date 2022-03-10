@@ -1,46 +1,34 @@
 //REQUIRED
 const { Router } = require('express');
-const { check } = require('express-validator');
 const fileUpload = require('express-fileupload');
 
 //FUNCTIONS
-const { updateImage, 
-    uploadGallery, 
-    DeletePhotoGallery, 
-    getGalleryByProduct } = require('../controllers/upload');
+const { uploadImage, deleteImage } = require('../controllers/upload');
 const { checkImage } = require('../middlewares/check-image');
 const { checkJWT, checkSuper } = require('../middlewares/check-jwt');
 
 
 //CODE
 const router = Router();
-router.use( fileUpload({
-    useTempFiles : true,
-    tempFileDir : '/tmp/',
+router.use(fileUpload({
+    useTempFiles: true,
+    tempFileDir: '/tmp/',
     createParentPath: true
 }));
 
 //ROUTES
 
-//GET GALLERY BY PRODUCT
-router.get('/:id', getGalleryByProduct)
-
-//UPDATE PHOTO OF PRODUCT OR CATEGORY
-router.post('/:collection/:id', [
+//POST PHOTO
+router.post('/', [
     checkJWT,
     checkSuper,
-    checkImage] , updateImage);
+    checkImage], uploadImage);
 
-//POST GALLERY PHOTO PRODUCT
-router.post('/:id',[
-    checkJWT,
-    checkSuper,
-    checkImage], uploadGallery);
 
 //DELETE PHOTO OF A PRODUCT
-router.delete('/:id',[
+router.post('/delete', [
     checkJWT,
-    checkSuper], DeletePhotoGallery);
-  
+    checkSuper], deleteImage);
+
 
 module.exports = router;

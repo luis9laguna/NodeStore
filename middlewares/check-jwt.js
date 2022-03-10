@@ -25,7 +25,7 @@ const checkJWT = (req, res, next) => {
 
         next();
 
-    } catch (err) {
+    } catch (error) {
         return res.status(401).send({
             ok: false,
             message: 'Token Invalid'

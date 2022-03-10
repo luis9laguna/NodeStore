@@ -3,12 +3,11 @@ const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const { generatorJWT } = require('../helpers/jwt');
 
-
 //CODE
-
 
 //GET
 const getUser = async (req, res) => {
+
     try {
         const id = req.id
         const userDB = await User.findById(id);
@@ -33,7 +32,7 @@ const getUser = async (req, res) => {
             },
         });
 
-    } catch (err) {
+    } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -43,38 +42,37 @@ const getUser = async (req, res) => {
 
 //GET ALL USERS
 const getAllUsers = async (req, res) => {
+
     try {
+        //DB QUERY
+        const query = User.find({ role: 'USER_ROLE', status: true })
 
-        //GETTING INFO FOR PAGINATION
-        const page = parseInt(req.query.page) || 1;
-        const pageSize = parseInt(req.query.limit) || 10;
+        //REQUESTS
+        const page = parseInt(req.query.page) || 1
+        const pageSize = parseInt(req.query.limit) || 10
+
+        //GETTING PAGINATION AND DATA
         const skip = (page - 1) * pageSize;
-
-        //GETTING USERS FROM DB
-        const allUsers = await User.find({ role: 'USER_ROLE', status: true })
-            .skip(skip).limit(pageSize);
-
-        //MORE INFO FOR PAGINATION
-        const total = await User.find({ role: 'USER_ROLE', status: true }).countDocuments();
+        let total = await query
+        total = total.length
         const pages = Math.ceil(total / pageSize)
 
-        //IN CASE FOR MORE PAGE THAT WE HAVE
-        if (page > pages) {
-            return res.status(404).json({
-                status: 'false',
-                message: "No page found"
-            })
-        }
+        //IF NO DATA
+        if (page > pages) return res.status(404).json({ status: 'false', message: "Page/Data not found" })
+
+        //GETTING DATA FROM THE DB
+        let data = await query.skip(skip).limit(pageSize).clone()
 
         res.json({
             ok: true,
-            allUsers,
-            count: allUsers.length,
+            allUsers: data,
+            count: data.length,
             page,
             pages
         });
 
-    } catch (err) {
+    } catch (error) {
+        console.log(error)
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -86,7 +84,6 @@ const getAllUsers = async (req, res) => {
 const createUser = async (req, res) => {
 
     try {
-
         const { email, password } = req.body;
         const existEmail = await User.findOne({ email });
 
@@ -120,7 +117,7 @@ const createUser = async (req, res) => {
             token
         });
 
-    } catch (err) {
+    } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"
@@ -134,7 +131,6 @@ const createUser = async (req, res) => {
 const updateUser = async (req, res) => {
 
     try {
-
         const id = req.id
         const userDB = await User.findById(id);
 
@@ -155,7 +151,7 @@ const updateUser = async (req, res) => {
             user: userUpdate
         });
 
-    } catch (err) {
+    } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"
@@ -168,7 +164,6 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
 
     try {
-
         const id = req.params.id;
         const userDB = await User.findById(id);
 
@@ -189,7 +184,7 @@ const deleteUser = async (req, res) => {
             message: "User deleted"
         });
 
-    } catch (err) {
+    } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"

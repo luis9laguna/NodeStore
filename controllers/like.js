@@ -10,47 +10,49 @@ const { sortProducts } = require('../helpers/sort-products');
 const getLikesByUser = async (req, res) => {
 
     try {
-
-        //GETTING INFO FOR PAGINATION
-        const page = parseInt(req.query.page) || 1;
-        const pageSize = parseInt(req.query.limit) || 10;
-        const skip = (page - 1) * pageSize;
-
-        //SORTING SORT
-        const sort = req.query.sort
-        const { newSort } = sortProducts(sort)
-
         //GET USER CODE
         const userId = req.id;
         const user = await User.findById(userId)
         const uCode = user.ucode
 
-        //GET PRODUCTS
-        const products = await Product.find({ "likes": uCode }).skip(skip).limit(pageSize).sort(newSort);
+        //DB QUERY
+        const query = Product.aggregate([
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            { $match: { "category.status": true, "status": true, "likes": uCode } },
+            { $project: { "cost": 0 } }
+        ])
 
-        if (products == "") {
-            return res.status(404).json({
-                ok: false,
-                message: "This user doesn't have likes"
-            });
-        }
+        //REQUESTS
+        const sort = req.query.sort
+        const page = parseInt(req.query.page) || 1
+        const pageSize = parseInt(req.query.limit) || 15
 
-        //MORE INFO FOR PAGINATION
-        const total = await Product.find({ "likes": uCode }).countDocuments();
+        //SORTING SORT
+        const newSort = sortProducts(sort)
+
+        //GETTING PAGINATION AND DATA
+        const skip = (page - 1) * pageSize;
+        let total = await query;
+        total = total.length
         const pages = Math.ceil(total / pageSize)
 
-        //IN CASE FOR MORE PAGE THAT WE HAVE
-        if (page > pages) {
-            return res.status(404).json({
-                status: 'false',
-                message: "No page found"
-            })
-        }
+        //IF NO DATA
+        if (page > pages) return res.status(404).json({ status: 'false', message: "Page/Data not found" })
+
+        //GETTING DATA FROM THE DB
+        let data = await query.sort(newSort).skip(skip).limit(pageSize)
 
         res.json({
             ok: true,
-            products,
-            count: products.length,
+            products: data,
+            count: data.length,
             page,
             pages
         });
@@ -74,15 +76,13 @@ const giveLikeAndDislike = async (req, res) => {
         const uCode = user.ucode
 
         //GET PRODUCT
-        const slug = req.params.slug;
-        const product = await Product.findOne({ "slug": slug });
-
-        const like = product.likes.includes(uCode)
+        const id = req.params.id;
+        const product = await Product.findById(id);
 
         //LOOKING FOR LIKE
+        const like = product.likes.includes(uCode)
         if (like) product.likes.remove(uCode)
         else product.likes.push(uCode)
-
 
         //SAVE
         product.save()
@@ -92,7 +92,6 @@ const giveLikeAndDislike = async (req, res) => {
             product
         });
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: 'Unexpected Error'
@@ -104,8 +103,23 @@ const giveLikeAndDislike = async (req, res) => {
 const getProductsWithMoreLikes = async (req, res) => {
 
     try {
+        const limit = parseInt(req.query.limit) || 10
 
-        const products = await Product.find().sort({ likes: '-1' })
+        //DB QUERY
+        const products = await Product.aggregate([
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            { $match: { "category.status": true, "status": true } },
+            { $project: { "cost": 0 } },
+            { $sort: { likes: -1 } },
+            { $limit: limit }
+        ])
 
         res.json({
             ok: true,
@@ -113,7 +127,7 @@ const getProductsWithMoreLikes = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error);
+        console.log(error)
         res.status(500).json({
             ok: false,
             message: 'Unexpected Error'

@@ -11,8 +11,8 @@ const { v4: uuidv4 } = require('uuid');
 
 //CODE
 const login = async (req, res) => {
-    try {
 
+    try {
         const { email, password } = req.body;
         const userDB = await User.findOne({ email, status: true });
 
@@ -40,7 +40,6 @@ const login = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"
@@ -85,7 +84,6 @@ const googleSignIn = async (req, res) => {
         // JWT
         const token = await generatorJWT(user.id, role, expire);
 
-
         res.json({
             message: 'User logged',
             token,
@@ -108,8 +106,8 @@ const googleSignIn = async (req, res) => {
 
 //CHANGE PASSWORD WITH LOGIN
 const changePassword = async (req, res) => {
-    try {
 
+    try {
         const id = req.id
         const oldPassword = req.body.oldPassword;
         const newPassword = req.body.newPassword;
@@ -147,6 +145,7 @@ const changePassword = async (req, res) => {
 
 //PETITION RESET PASSWORD
 const forgetEmail = async (req, res) => {
+
     try {
         const email = req.body.email;
 
@@ -158,7 +157,6 @@ const forgetEmail = async (req, res) => {
                 message: 'User not found'
             });
         }
-
 
         const { name, id, role, google } = user;
 
@@ -177,7 +175,6 @@ const forgetEmail = async (req, res) => {
         const subject = `Password Reset Request For ${name}`;
         const text = `Hi ${name}, here is your link to change the password ${verificationLink}`;
         const tokenForgot = new TokenForgot({ user: id, token });
-
 
         //VALIDATION OF TOKENDB
         const tokenDB = await TokenForgot.findOne({ user: id });
@@ -209,7 +206,6 @@ const forgetEmail = async (req, res) => {
 const resetPassword = async (req, res) => {
 
     try {
-
         const token = req.params.token;
         const newPassword = req.body.password;
 

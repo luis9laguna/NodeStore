@@ -1,43 +1,51 @@
 //REQUIRED
 const { sortProducts } = require('../helpers/sort-products');
 const Product = require('../models/product');
-const slugify = require('slugify')
+const slugify = require('slugify');
 //CODE
 
 //GET ALL
-const getProduct = async (req, res) => {
-    try {
+const getAllProducts = async (req, res) => {
 
-        //GETTING INFO FOR PAGINATION
-        const page = parseInt(req.query.page) || 1;
-        const pageSize = parseInt(req.query.limit) || 10;
-        const skip = (page - 1) * pageSize;
+    try {
+        //DB QUERY
+        const query = Product.aggregate([
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            { $match: { "category.status": true, "status": true } },
+            { $project: { "cost": 0 } }
+        ])
+
+        //REQUESTS
+        const sort = req.query.sort
+        const page = parseInt(req.query.page) || 1
+        const pageSize = parseInt(req.query.limit) || 15
 
         //SORTING SORT
-        const sort = req.query.sort
-        const { newSort } = sortProducts(sort)
+        const newSort = sortProducts(sort)
 
-        //GETTING PRODUCTS FROM THE DB
-        const products = await Product.find({ "status": true }).sort(newSort)
-            .skip(skip).limit(pageSize);
-
-
-        //MORE INFO FOR PAGINATION
-        const total = await Product.countDocuments();
+        //GETTING PAGINATION AND DATA
+        const skip = (page - 1) * pageSize;
+        let total = await query;
+        total = total.length
         const pages = Math.ceil(total / pageSize)
 
-        //IN CASE FOR MORE PAGE THAT WE HAVE
-        if (page > pages) {
-            return res.status(404).json({
-                status: 'false',
-                message: "No page found"
-            })
-        }
+        //IF NO DATA
+        if (page > pages) return res.status(404).json({ status: 'false', message: "Page/Data not found" })
+
+        //GETTING DATA FROM THE DB
+        let data = await query.sort(newSort).skip(skip).limit(pageSize)
 
         res.json({
             ok: true,
-            products,
-            count: products.length,
+            products: data,
+            count: data.length,
             page,
             pages
         });
@@ -52,9 +60,22 @@ const getProduct = async (req, res) => {
 
 //GET NEWEST
 const getNewestProduct = async (req, res) => {
-    try {
 
-        const products = await Product.find({ "status": true }).sort({ createdAt: 'asc' }).limit(10);
+    try {
+        const products = await Product.aggregate([
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            { $match: { "category.status": true, "status": true } },
+            { $project: { "cost": 0 } },
+            { $sort: { createdAt: -1 } },
+            { $limit: 10 }
+        ])
 
         res.json({
             ok: true,
@@ -71,11 +92,13 @@ const getNewestProduct = async (req, res) => {
 
 //GET PRODUCT BY SLUG
 const getProductBySlug = async (req, res) => {
+
     try {
         const slug = req.params.slug;
-        const productDB = await Product.findOne({ 'slug': slug, 'status': true }).populate('category');
+        let product = await Product.findOne({ 'slug': slug, 'status': true }).select(['-cost'])
+            .populate('category', 'name status slug');
 
-        if (!productDB) {
+        if (!product || !product.category.status) {
             return res.status(404).json({
                 ok: false,
                 message: 'Product not found'
@@ -84,15 +107,7 @@ const getProductBySlug = async (req, res) => {
 
         res.json({
             ok: true,
-            product: {
-                name: productDB.name,
-                description: productDB.description,
-                price: productDB.price,
-                image: productDB.image,
-                likes: productDB.likes,
-                stock: productDB.stock,
-                category: productDB.category.slug
-            }
+            product
         });
 
     } catch (error) {
@@ -106,8 +121,8 @@ const getProductBySlug = async (req, res) => {
 
 //CREATE
 const createProduct = async (req, res) => {
-    try {
 
+    try {
         const { name } = req.body;
         const existProduct = await Product.findOne({ name });
 
@@ -119,13 +134,13 @@ const createProduct = async (req, res) => {
             });
         }
 
-
         //PRODUCT
         let product = new Product(req.body);
 
         //SLUG
         const slug = slugify(name)
         product.slug = slug
+        product.name = name.toLowerCase()
 
         //SAVE CATEGORY
         await product.save();
@@ -146,9 +161,8 @@ const createProduct = async (req, res) => {
 
 //UPDATE
 const updateProduct = async (req, res) => {
+
     try {
-
-
         const id = req.params.id;
         const productDB = await Product.findById(id);
 
@@ -184,6 +198,7 @@ const updateProduct = async (req, res) => {
 
 //DELETE
 const deleteProduct = async (req, res) => {
+
     try {
         const id = req.params.id;
         const ProductDB = await Product.findById(id);
@@ -214,9 +229,9 @@ const deleteProduct = async (req, res) => {
 
 //CHECK STOCK
 const checkStock = async (req, res) => {
-    try {
 
-        const slug = req.body.slug;
+    try {
+        const slug = req.params.slug;
         const productDB = await Product.findOne({ 'slug': slug, 'status': true })
 
         if (!productDB) {
@@ -239,12 +254,46 @@ const checkStock = async (req, res) => {
     }
 }
 
+//UPDATE STOCK
+
+const updateStock = async (req, res) => {
+
+    try {
+        const id = req.params.id;
+        const stock = req.body.stock
+        const productDB = await Product.findById(id)
+
+        if (!productDB) {
+            return res.status(404).json({
+                ok: false,
+                message: 'Product not found'
+            });
+        }
+
+        //UPDATE PRODUCT
+        const newStock = productDB.stock + parseInt(stock)
+        const productUpdate = await Product.findByIdAndUpdate(id, { stock: newStock }, { new: true });
+
+        res.json({
+            ok: true,
+            productUpdate
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            ok: false,
+            message: "Error Unexpected, check logs"
+        });
+    }
+}
+
 module.exports = {
-    getProduct,
+    getAllProducts,
     getNewestProduct,
     getProductBySlug,
     createProduct,
     updateProduct,
     deleteProduct,
-    checkStock
+    checkStock,
+    updateStock
 }

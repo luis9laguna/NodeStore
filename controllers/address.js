@@ -8,7 +8,6 @@ const User = require('../models/user')
 const getAddressesByUser = async (req, res) => {
 
     try {
-
         //GET DATA FROM THE DB
         const userId = req.id;
         const addresses = await Address.find({ 'user': userId }).populate('user', 'address');
@@ -18,8 +17,7 @@ const getAddressesByUser = async (req, res) => {
             addresses
         });
 
-    } catch (err) {
-
+    } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -31,7 +29,6 @@ const getAddressesByUser = async (req, res) => {
 const getAddressByID = async (req, res) => {
 
     try {
-
         //GET DATA FROM THE DB
         const addressId = req.params.id;
         const address = await Address.findById(addressId)
@@ -41,8 +38,7 @@ const getAddressByID = async (req, res) => {
             address: address.address
         });
 
-    } catch (err) {
-
+    } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -69,21 +65,18 @@ const createAddress = async (req, res) => {
         let address = new Address(req.body);
         address.user = userId
 
-
         //SAVE ADDRESS
         await address.save();
 
         //UPDATING DEFAULT USER ADDRESS
         await User.findByIdAndUpdate(req.id, { address: address.id })
 
-
         res.json({
             ok: true,
             address
         });
 
-    } catch (err) {
-
+    } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"
@@ -97,7 +90,6 @@ const createAddress = async (req, res) => {
 const updateAddress = async (req, res) => {
 
     try {
-
         //GET DATA FROM THE DB
         const id = req.params.id;
         const addressDB = await Address.findById(id);
@@ -122,7 +114,7 @@ const updateAddress = async (req, res) => {
             address: addressUpdate
         });
 
-    } catch (err) {
+    } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"
@@ -134,7 +126,6 @@ const updateAddress = async (req, res) => {
 const makeAddressDefault = async (req, res) => {
 
     try {
-
         //GET DATA FROM THE DB
         const id = req.params.id;
         const addressDB = await Address.findById(id);
@@ -155,7 +146,7 @@ const makeAddressDefault = async (req, res) => {
             message: 'Default Address Updated'
         });
 
-    } catch (err) {
+    } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"
@@ -168,7 +159,6 @@ const makeAddressDefault = async (req, res) => {
 const deleteAddress = async (req, res) => {
 
     try {
-
         //GET DATA FROM THE REQ
         const id = req.params.id;
         const userId = req.id;
@@ -202,7 +192,7 @@ const deleteAddress = async (req, res) => {
             user
         });
 
-    } catch (err) {
+    } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"

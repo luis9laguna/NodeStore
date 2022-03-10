@@ -13,8 +13,6 @@ const sendEmail = async (email, subject, text) => {
             },
         });
 
-
-
         transporter.sendMail({
             from: process.env.EMAIL_ADDRESS,
             to: email,

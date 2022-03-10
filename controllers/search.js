@@ -1,108 +1,50 @@
 //REQUIRED
 const Product = require('../models/product');
-const Category = require('../models/category');
 const { sortProducts } = require('../helpers/sort-products');
 
 //CODE
 
-
-const searchAll = async (req, res) => {
+//SEARCH
+const searchProducts = async (req, res) => {
 
     try {
-
+        //TERM AND REGEX
         const term = req.params.term;
         const regex = new RegExp(term, 'i')
 
-        const [products, categories] = await Promise.all([
+        //DB QUERY
+        const query = Product.aggregate([
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            { $match: { "category.status": true, "status": true, $or: [{ "name": regex }, { "description": regex }] } },
+            { $project: { "cost": 0 } }
+        ])
 
-            Product.find({ name: regex }, { status: true }),
-            Category.find({ name: regex }, { status: true })
-        ]);
-
-        res.json({
-            ok: true,
-            products,
-            categories
-        });
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            ok: false,
-            message: "Unexpected Error"
-        });
-    }
-
-
-}
-
-
-//SEARCH ONE
-const SearchOne = async (req, res) => {
-
-    try {
-
-        //GETTING INFO FOR PAGINATION
-        const page = parseInt(req.query.page) || 1;
-        const pageSize = parseInt(req.query.limit) || 10;
-        const skip = (page - 1) * pageSize;
+        //REQUESTS
+        const sort = req.query.sort
+        const page = parseInt(req.query.page) || 1
+        const pageSize = parseInt(req.query.limit) || 15
 
         //SORTING SORT
-        const sort = req.query.sort
-        const { newSort } = sortProducts(sort)
+        const newSort = sortProducts(sort)
 
-        //GETTING COLLECTION FOR THE QUERY
-        const collection = req.params.collection;
-        const term = req.params.term;
-        const regex = new RegExp(term, 'i')
-        let data = [];
-        let total = [];
-
-        //GETTING DATA FROM DB
-        switch (collection) {
-
-            case 'product':
-                data = await Product.find({
-                    $or: [{ name: regex }, { description: regex }],
-                    $and: [{ status: true }]
-                }).select(['-cost']).skip(skip).limit(pageSize).sort(newSort);
-
-
-                //MORE INFO FOR PAGINATION
-                total = await Product.find({
-                    $or: [{ name: regex }, { description: regex }],
-                    $and: [{ status: true }]
-                }).countDocuments();
-
-
-                break;
-
-            case 'category':
-
-                data = await Category.find({ name: regex }, { status: true }).skip(skip).limit(pageSize);
-
-                //MORE INFO FOR PAGINATION
-                total = await Category.find({ name: regex }, { status: true }).countDocuments();
-
-                break;
-
-            default:
-                res.status(400).json({
-                    ok: false,
-                    message: "The params has to be 'product' or 'category'"
-                });
-        }
-
-        //MORE INFO FOR PAGINATION
+        //GETTING PAGINATION AND DATA
+        const skip = (page - 1) * pageSize;
+        let total = await query;
+        total = total.length
         const pages = Math.ceil(total / pageSize)
 
-        //IN CASE FOR MORE PAGE THAT WE HAVE
-        if (page > pages) {
-            return res.status(404).json({
-                status: 'false',
-                message: "No page found"
-            })
-        }
+        //IF NO DATA
+        if (page > pages) return res.status(404).json({ status: 'false', message: "Page/Data not found" })
+
+        //GETTING DATA FROM THE DB
+        let data = await query.sort(newSort).skip(skip).limit(pageSize)
 
         res.json({
             ok: true,
@@ -112,8 +54,7 @@ const SearchOne = async (req, res) => {
             pages
         });
 
-    } catch (err) {
-        console.log(err);
+    } catch (error) {
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -122,6 +63,5 @@ const SearchOne = async (req, res) => {
 }
 
 module.exports = {
-    searchAll,
-    SearchOne
+    searchProducts
 }

@@ -2,16 +2,16 @@
 const Category = require('../models/category');
 const Product = require('../models/product');
 const slugify = require('slugify')
-const { v4: uuidv4 } = require('uuid');
 const { sortProducts } = require('../helpers/sort-products');
 const cloudinary = require('cloudinary').v2
 
 //CODE
+cloudinary.config(process.env.CLOUDINARY_URL);
 
 //GET ALL CATEGORIES
 const getCategories = async (req, res) => {
-    try {
 
+    try {
         const categories = await Category.find({ "status": true }).sort('name');
 
         res.json({
@@ -20,7 +20,6 @@ const getCategories = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -29,48 +28,64 @@ const getCategories = async (req, res) => {
 }
 
 //GET ALL PRODUCTS BY CATEGORY
-const getProductByCategory = async (req, res) => {
+const getProductsByCategory = async (req, res) => {
 
     try {
+        //GETTING CATEGORY FROM THE DB
+        const slug = req.params.slug;
+        const category = await Category.findOne({ slug: slug, status: true })
 
-        //GETTING INFO FOR PAGINATION
-        const page = parseInt(req.query.page) || 1;
-        const pageSize = parseInt(req.query.limit) || 10;
-        const skip = (page - 1) * pageSize;
+        if (!category) {
+            return res.status(404).json({
+                ok: false,
+                message: 'Category not found'
+            });
+        }
+
+        //DB QUERY
+        const query = Product.aggregate([
+            {
+                $lookup: {
+                    from: 'categories',
+                    localField: 'category',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            { $match: { "category.status": true, "status": true, "category._id": category._id } },
+            { $project: { "cost": 0 } }
+        ])
+
+        //REQUESTS
+        const sort = req.query.sort
+        const page = parseInt(req.query.page) || 1
+        const pageSize = parseInt(req.query.limit) || 15
 
         //SORTING SORT
-        const sort = req.query.sort
-        const { newSort } = sortProducts(sort)
+        const newSort = sortProducts(sort)
 
-        //GETTING CATEGORY AND PRODUCTS FROM THE DB
-        const slug = req.params.slug;
-        const category = await Category.findOne({ 'slug': slug })
-        const products = await Product.find({ "category": category.id, "status": true })
-            .select(['-cost']).sort(newSort).skip(skip).limit(pageSize);
-
-        //MORE INFO FOR PAGINATION
-        const total = await Product.find({ "category": category.id, "status": true }).countDocuments();
+        //GETTING PAGINATION AND DATA
+        const skip = (page - 1) * pageSize;
+        let total = await query;
+        total = total.length
         const pages = Math.ceil(total / pageSize)
 
-        //IN CASE FOR MORE PAGE THAT WE HAVE
-        if (page > pages) {
-            return res.status(404).json({
-                status: 'false',
-                message: "No page found"
-            })
-        }
+        //IF NO DATA
+        if (page > pages) return res.status(404).json({ status: 'false', message: "Page/Data not found" })
+
+        //GETTING DATA FROM THE DB
+        let data = await query.sort(newSort).skip(skip).limit(pageSize)
 
         res.json({
             ok: true,
             category,
-            products,
-            count: products.length,
+            products: data,
+            count: data.length,
             page,
             pages
         });
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: 'Unexpected Error'
@@ -83,7 +98,7 @@ const getProductByCategory = async (req, res) => {
 const createCategory = async (req, res) => {
     try {
 
-        const { name } = req.body;
+        const { name, images } = req.body;
         const existCategory = await Category.findOne({ name, 'status': true });
 
         //VERIFY CATEGORY
@@ -97,20 +112,29 @@ const createCategory = async (req, res) => {
         //CATEGORY
         let category = new Category(req.body);
 
+        //MOVING IMAGE CLOUDINARY
+        const oldNameArray = images[0].split('/');
+        const oldnameId = oldNameArray[oldNameArray.length - 1];
+        const [public_id] = oldnameId.split('.');
+        const newPublic_id = `categories/${name}/${public_id}`
+
+        const { secure_url } = await cloudinary.uploader.rename(public_id, newPublic_id)
+
         //SLUG
         const slug = slugify(name)
+        category.name = name.toLowerCase()
         category.slug = slug
+        category.image = secure_url
 
-        //SAVE CATEGORY
+        // SAVE CATEGORY
         await category.save();
 
         res.json({
             ok: true,
-            category,
+            category
         })
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: 'Unexpected Error'
@@ -121,9 +145,10 @@ const createCategory = async (req, res) => {
 
 //UPDATE
 const updateCategory = async (req, res) => {
-    try {
 
+    try {
         const id = req.params.id;
+        const { name, images } = req.body;
         const category = await Category.findById(id);
 
         //VERIFY CATEGORY
@@ -134,10 +159,19 @@ const updateCategory = async (req, res) => {
             });
         }
 
+        //MOVING IMAGE CLOUDINARY
+        const oldNameArray = images[0].split('/');
+        const oldnameId = oldNameArray[oldNameArray.length - 1];
+        const [public_id] = oldnameId.split('.');
+        const newPublic_id = `categories/${name}/${public_id}`
+
+        const { secure_url } = await cloudinary.uploader.rename(public_id, newPublic_id)
+
         //NEWDATA
-        const slug = slugify(req.body.name)
+        const slug = slugify(name)
         let newCategory = req.body
         newCategory.slug = slug
+        newCategory.image = secure_url
 
         //UPDATE CATEGORY
         const categoryUpdate = await Category.findByIdAndUpdate(id, newCategory, { new: true });
@@ -155,9 +189,9 @@ const updateCategory = async (req, res) => {
     }
 }
 
-
 //DELETE
 const deleteCategory = async (req, res) => {
+
     try {
         const id = req.params.id;
         const CategoryDB = await Category.findById(id);
@@ -170,7 +204,13 @@ const deleteCategory = async (req, res) => {
         }
 
         //DELETE CATEGORY
-        await Category.findByIdAndUpdate(id, { status: false }, { new: true });
+        const products = await Product.find({ "category": id });
+
+        if (products.length < 1) {
+            await Category.findByIdAndDelete(id)
+        } else {
+            await Category.findByIdAndUpdate(id, { status: false }, { new: true });
+        }
 
         res.json({
             ok: true,
@@ -178,7 +218,6 @@ const deleteCategory = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"
@@ -188,7 +227,7 @@ const deleteCategory = async (req, res) => {
 
 module.exports = {
     getCategories,
-    getProductByCategory,
+    getProductsByCategory,
     createCategory,
     updateCategory,
     deleteCategory

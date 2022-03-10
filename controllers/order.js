@@ -4,14 +4,15 @@ const OrderItem = require('../models/order-item');
 const Product = require('../models/product');
 const { v4: uuidv4 } = require('uuid');
 const { sendEmail } = require('../helpers/send-email');
+const { sellInformation } = require('../helpers/SellInformation');
 
 
 //CODE
 
 //GET ORDER BY CODE
 const getOrderByCode = async (req, res) => {
-    try {
 
+    try {
         const code = req.body.code;
         const orderDB = await Order.findOne({ code }).populate({
             path: 'orderItems',
@@ -51,7 +52,6 @@ const getOrderByCode = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -61,40 +61,36 @@ const getOrderByCode = async (req, res) => {
 
 //GET ORDERS BY USER
 const getOrdersByUser = async (req, res) => {
+
     try {
-
-        //GETTING INFO FOR PAGINATION
-        const page = parseInt(req.query.page) || 1;
-        const pageSize = parseInt(req.query.limit) || 10;
-        const skip = (page - 1) * pageSize;
-
-        //GETTING INFORMATION FROM THE DB
         const user = req.id;
-        const orders = await Order.find({ user }, 'code total status createdAt').sort({ 'updatedAt': -1 })
-            .skip(skip).limit(pageSize);
+        const query = Order.find({ user }, 'code total status createdAt').sort({ 'updatedAt': -1 })
 
-        //MORE INFO FOR PAGINATION
-        const total = await Order.find({ user }, 'code total status createdAt').sort({ 'updatedAt': -1 }).countDocuments();
+        //REQUESTS
+        const page = parseInt(req.query.page) || 1
+        const pageSize = parseInt(req.query.limit) || 10
+
+        //GETTING PAGINATION AND DATA
+        const skip = (page - 1) * pageSize;
+        let total = await query
+        total = total.length
         const pages = Math.ceil(total / pageSize)
 
-        //IN CASE FOR MORE PAGE THAT WE HAVE
-        if (page > pages) {
-            return res.status(404).json({
-                status: 'false',
-                message: "No page found"
-            })
-        }
+        //IF NO DATA
+        if (page > pages) return res.status(404).json({ status: 'false', message: "Page/Data not found" })
+
+        //GETTING DATA FROM THE DB
+        let data = await query.skip(skip).limit(pageSize).clone()
 
         res.json({
             ok: true,
-            orders,
-            count: orders.length,
+            orders: data,
+            count: data.length,
             page,
             pages
         });
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -104,43 +100,40 @@ const getOrdersByUser = async (req, res) => {
 
 //GET ALL ORDERS
 const getAllOrders = async (req, res) => {
+
     try {
+        //SORT STATUS
+        const reqStatus = req.query.sort
+        const sortStatus = reqStatus === 'all' ? { $gte: 0 } : reqStatus
 
-        //GETTING INFO FOR PAGINATION
-        const page = parseInt(req.query.page) || 1;
-        const pageSize = parseInt(req.query.limit) || 10;
+        //DB QUERY
+        const query = Order.find({ status: sortStatus })
+
+        //REQUESTS
+        const page = parseInt(req.query.page) || 1
+        const pageSize = parseInt(req.query.limit) || 10
+
+        //GETTING PAGINATION AND DATA
         const skip = (page - 1) * pageSize;
-
-        //SORT
-        const reqSort = req.query.sort
-        const sort = reqSort === 'all' ? { $gte: 0 } : reqSort
-
-        //GETTING ORDERS FROM DB
-        const orders = await Order.find({ status: sort }).sort({ 'updatedAt': -1 })
-            .skip(skip).limit(pageSize);
-
-        //MORE INFO FOR PAGINATION
-        const total = await Order.find({ status: sort }).sort({ 'updatedAt': -1 }).countDocuments();
+        let total = await query
+        total = total.length
         const pages = Math.ceil(total / pageSize)
 
-        //IN CASE FOR MORE PAGE THAT WE HAVE
-        if (page > pages) {
-            return res.status(404).json({
-                status: 'false',
-                message: "No page found"
-            })
-        }
+        //IF NO DATA
+        if (page > pages) return res.status(404).json({ status: 'false', message: "Page/Data not found" })
+
+        //GETTING DATA FROM THE DB
+        let data = await query.sort({ 'updatedAt': -1 }).skip(skip).limit(pageSize).clone()
 
         res.json({
             ok: true,
-            orders,
-            count: orders.length,
+            orders: data,
+            count: data.length,
             page,
             pages
         });
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -151,39 +144,37 @@ const getAllOrders = async (req, res) => {
 
 //GET ORDERS COMPLETED INFORMATION
 const completedInformation = async (req, res) => {
+
     try {
-
-        const completedOrders = await Order.find({ "status": "delivered" }).
+        //GETTING DATA FROM DB
+        const completedOrders = await Order.find({ status: "delivered" }).
             populate('address');
+        const {
+            totalCompleted,
+            totalSold,
+            totalCost,
+            totalRevenue
+        } = sellInformation(completedOrders)
 
-        //TOTAL OF COMPLETED ORDERS
-        const totalCompleted = completedOrders.length;
+        //GET DATA FROM LAST MONTH
+        let monthData = new Date();
+        monthData.setMonth(monthData.getMonth() - 1);
+        const completedLastMonth = await Order.find({ status: "delivered", createdAt: { $gte: monthData } })
+        const {
+            totalCompleted: totalLastMonth,
+            totalRevenue: RevenueLastMonth
+        } = sellInformation(completedLastMonth)
 
-        //TOTAL OF SOLD AND COST
-        const arrayTotal = completedOrders.map((array) => {
-            const totalPrice = array.total;
-            return totalPrice;
-        });
 
-        const arrayCost = completedOrders.map((array) => {
-            const orderCost = array.totalCost;
-            return orderCost;
-        });
 
-        const totalSold = arrayTotal.reduce((a, b) => a + b, 0);
-        const totalCost = arrayCost.reduce((a, b) => a + b, 0);
+        // //ADDRESS OF USERS WHO BOUGHT
+        // const addressessUser = completedOrders.map((array) => {
+        //     return array.address.address;
+        // });
 
-        //TOTAL REVENUE
-        const totalRevenue = totalSold - totalCost
-
-        //ADDRESS OF USERS WHO BOUGHT
-        const addressessUser = completedOrders.map((array) => {
-            return array.address.address;
-        });
-
-        const province = addressessUser.filter(function (p) {
-            return p.state == "metropolitana"
-        });
+        // const province = addressessUser.filter(function (p) {
+        //     return p.state == "metropolitana"
+        // });
 
         //IF I ONLY NEED PROVINCE AND CITY 
         //     const reducedFilter = (data, keys, fn) =>
@@ -197,23 +188,27 @@ const completedInformation = async (req, res) => {
         // const provinceCityMetro = reducedFilter(addressessUser, ['province', 'city'], item => item.state == "metropolitana");
 
         //STATES OF USERS WHO BOUGHT
-        const statesUser = completedOrders.map((array) => {
-            return array.address.address.state;
-        });
+        // const statesUser = completedOrders.map((array) => {
+        //     return array.address.address.state;
+        // });
 
         //RESPONSE
         res.json({
             ok: true,
-            totalCompleted,
-            totalSold,
-            totalRevenue,
-            statesUser,
-            province
+            orders: {
+
+                totalCompleted,
+                totalCost,
+                totalSold,
+                totalRevenue,
+                totalLastMonth,
+                RevenueLastMonth
+                // statesUser,
+                // province,
+            }
         });
 
-
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"
@@ -224,8 +219,8 @@ const completedInformation = async (req, res) => {
 
 //CREATE
 const createOrder = async (req, res) => {
-    try {
 
+    try {
         //ID USER
         const idUser = req.id
 
@@ -236,9 +231,9 @@ const createOrder = async (req, res) => {
             let productDB = await Product.findById(orderItem.product);
             productDB.stock = productDB.stock - orderItem.quantity;
             if (productDB.stock < 0) {
-                res.status(500).json({
+                return res.status(500).json({
                     ok: false,
-                    message: 'There arent that amount of products'
+                    message: 'There arent enough products'
                 });
             }
 
@@ -259,17 +254,17 @@ const createOrder = async (req, res) => {
             }
         }));
 
-        //GETTING TOTAL PRICE
-        const totalPricesArray = orderItemsInfo.map(orderItemInfo => {
-            return orderItemInfo.totalPricesInfo
-        });
-        const totalPrice = totalPricesArray.reduce((a, b) => a + b, 0);
+        //GETTING TOTALS
+        let totalPrice = []
+        let totalCost = []
 
-        //GETTING TOTAL COST
-        const totalCostsArray = orderItemsInfo.map(orderItemInfo => {
-            return orderItemInfo.totalCostsInfo
+        orderItemsInfo.map(orderItemInfo => {
+            totalPrice.push(orderItemInfo.totalPricesInfo)
+            totalCost.push(orderItemInfo.totalCostsInfo)
         });
-        const totalCost = totalCostsArray.reduce((a, b) => a + b, 0);
+
+        totalPrice = totalPrice.reduce((a, b) => a + b, 0);
+        totalCost = totalCost.reduce((a, b) => a + b, 0);
 
         //GETTING IDS IN ORDERITEMS
         const idItemsArray = orderItemsInfo.map(orderItemInfo => {
@@ -291,7 +286,6 @@ const createOrder = async (req, res) => {
         //SHOWING NULL IN THE RESPONSE COST
         order.totalCost = null;
 
-
         //SEND EMAIL
         // await sendEmail(email, subject, text, code);
 
@@ -302,7 +296,6 @@ const createOrder = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error);
         res.status(500).json({
             ok: false,
             message: 'Unexpected Error'
@@ -313,9 +306,8 @@ const createOrder = async (req, res) => {
 
 //UPDATE
 const updateOrder = async (req, res) => {
+
     try {
-
-
         const id = req.params.id;
         const orderDB = await Order.findById(id);
 
@@ -333,6 +325,7 @@ const updateOrder = async (req, res) => {
 
         res.json({
             ok: true,
+            orderUpdate,
             message: 'Order has been updated'
         });
 

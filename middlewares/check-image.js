@@ -1,6 +1,6 @@
-const checkImage = (req, res = response, next ) => {
+const checkImage = (req, res, next) => {
 
-    if (!req.files || Object.keys(req.files).length === 0 || !req.files.image ) {
+    if (!req.files || Object.keys(req.files).length === 0 || !req.files.images) {
         return res.status(400).json({
             message: 'There arent images to upload'
         });
@@ -9,8 +9,6 @@ const checkImage = (req, res = response, next ) => {
     next();
 
 }
-
-
 module.exports = {
     checkImage
 }

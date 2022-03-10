@@ -30,10 +30,12 @@ const ProductSchema = Schema(
             type: Number,
             required: true
         },
-        image: {
-            type: String,
-            default: "https://res.cloudinary.com/faisca/image/upload/v1639115747/noimage_fa8wdn.jpg"
-        },
+        image: [
+            {
+                type: String,
+                required: true
+            }
+        ],
         slug: {
             type: String,
             required: true

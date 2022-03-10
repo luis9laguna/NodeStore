@@ -4,7 +4,7 @@ const { check } = require('express-validator');
 
 //FUNCTIONS
 const { getCategories,
-    getProductByCategory,
+    getProductsByCategory,
     createCategory,
     updateCategory,
     deleteCategory } = require('../controllers/categories');
@@ -18,7 +18,7 @@ const router = Router();
 router.get('/', getCategories);
 
 //GET PRODUCTS BY CATEGORY
-router.get('/:slug', getProductByCategory);
+router.get('/:slug', getProductsByCategory);
 
 //POST
 router.post('/', [

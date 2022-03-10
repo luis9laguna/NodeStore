@@ -22,7 +22,7 @@ router.post('/code/status', getOrderByCode);
 //GET ORDERS BY USER
 router.get('/user/all', checkJWT, getOrdersByUser);
 
-//GET COMPLETE ORDERS
+//GET COMPLETED ORDERS
 router.get('/total/information', [
     checkJWT,
     checkAdmin
