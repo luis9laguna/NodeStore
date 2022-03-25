@@ -38,6 +38,6 @@ router.put('/:id', [
 ], updateCategory);
 
 //DELETE
-router.delete('/:id', deleteCategory);
+router.delete('/:id', [checkJWT, checkSuper], deleteCategory);
 
 module.exports = router;

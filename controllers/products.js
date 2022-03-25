@@ -2,6 +2,7 @@
 const { sortProducts } = require('../helpers/sort-products');
 const Product = require('../models/product');
 const slugify = require('slugify');
+const cloudinary = require('cloudinary').v2
 //CODE
 
 //GET ALL
@@ -123,7 +124,7 @@ const getProductBySlug = async (req, res) => {
 const createProduct = async (req, res) => {
 
     try {
-        const { name } = req.body;
+        const { name, images } = req.body;
         const existProduct = await Product.findOne({ name });
 
         //VERIFY PRODUCT
@@ -136,11 +137,25 @@ const createProduct = async (req, res) => {
 
         //PRODUCT
         let product = new Product(req.body);
+        const nameLower = name.toLowerCase()
+
+        //MOVING IMAGE CLOUDINARY
+        let newImages = new Array
+        for (const image of images) {
+            const oldNameArray = image.split('/');
+            const oldnameId = oldNameArray[oldNameArray.length - 1];
+            const [public_id] = oldnameId.split('.');
+            const newPublic_id = `products/${nameLower}/${public_id}`
+            const { secure_url } = await cloudinary.uploader.rename(public_id, newPublic_id)
+            newImages.push(secure_url)
+        }
+        if (newImages.length === 0) newImages.push('https://res.cloudinary.com/faisca/image/upload/v1646973658/default/default_vzrr7n.jpg')
 
         //SLUG
         const slug = slugify(name)
         product.slug = slug
-        product.name = name.toLowerCase()
+        product.name = nameLower
+        product.images = newImages
 
         //SAVE CATEGORY
         await product.save();
@@ -164,6 +179,7 @@ const updateProduct = async (req, res) => {
 
     try {
         const id = req.params.id;
+        const { name, images } = req.body;
         const productDB = await Product.findById(id);
 
         //VERIFY PRODUCT
@@ -175,9 +191,46 @@ const updateProduct = async (req, res) => {
         }
 
         //NEWDATA
-        const slug = slugify(productDB.name)
+        const nameLower = name.toLowerCase()
+        const slug = slugify(nameLower)
+
+        //MOVING IMAGE CLOUDINARY
+        let newImages = new Array
+        for (const image of images) {
+            const oldNameArray = image.split('/');
+
+            //IF THE OLD PHOTO WAS ORGANIZED BEFORE
+            let finishedOldRoute
+            if (oldNameArray.length === 10) {
+                //GET THE OLD ROUTE ARRAY
+                const oldRouteArray = oldNameArray.slice(-3)
+                const wholeOldRoute = oldRouteArray.join('/')
+                const [oldRoute] = wholeOldRoute.split('.')
+                finishedOldRoute = oldRoute.replace(/%20/g, " ")
+            } else {
+                const wholeOldRoute = oldNameArray[oldNameArray.length - 1];
+                [finishedOldRoute] = wholeOldRoute.split('.')
+            }
+
+            //GETTING THE LAST PART OF PUBLIC ID
+            const oldnameId = oldNameArray[oldNameArray.length - 1]
+            const [public_id] = oldnameId.split('.');
+            const newPublic_id = `products/${nameLower}/${public_id}`
+
+            //MOVING FOLDER
+            if (finishedOldRoute !== newPublic_id) {
+                const { secure_url } = await cloudinary.uploader.rename(finishedOldRoute, newPublic_id)
+                newImages.push(secure_url)
+            } else {
+                newImages.push(image)
+            }
+
+        }
+        if (newImages.length === 0) newImages.push('https://res.cloudinary.com/faisca/image/upload/v1646973658/default/default_vzrr7n.jpg')
+
         let newProduct = req.body
         newProduct.slug = slug
+        newProduct.images = newImages
 
         //UPDATE PRODUCT
         const productUpdate = await Product.findByIdAndUpdate(id, newProduct, { new: true });

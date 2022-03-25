@@ -10,8 +10,7 @@ const OrderSchema = Schema(
         },
         user: {
             type: Schema.Types.ObjectId,
-            ref: 'User',
-            required: true
+            ref: 'User'
         },
         address: {
             type: Schema.Types.ObjectId,
@@ -40,7 +39,7 @@ const OrderSchema = Schema(
         ],
         shipping: {
             type: Number,
-            default: 3500
+            default: 15
         }
     },
     { timestamps: true }

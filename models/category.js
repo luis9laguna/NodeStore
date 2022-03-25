@@ -11,7 +11,8 @@ const CategorySchema = Schema(
         },
         image: {
             type: String,
-            required: true
+            required: true,
+            default: 'https://res.cloudinary.com/faisca/image/upload/v1646973658/default/default_vzrr7n.jpg'
         },
         slug: {
             type: String,

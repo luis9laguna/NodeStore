@@ -1,6 +1,7 @@
 //REQUIRED
 const { Router } = require('express');
 const { check } = require('express-validator');
+const rateLimit = require("express-rate-limit");
 
 //FUNCTIONS
 const { getAddressesByUser,
@@ -14,17 +15,24 @@ const { checkJWT } = require('../middlewares/check-jwt');
 
 //CODE
 const router = Router();
+const addressLimitter = rateLimit({
+    windowMs: 5 * 60 * 1000,
+    max: 5,
+    message: {
+        code: 429,
+        message: "Too many requests, wait for a moment"
+    }
+});
 
 //GET ALL BY USER
 router.get('/', checkJWT, getAddressesByUser);
 
 //GET BY ID
-router.get('/:id', checkJWT, getAddressByID);
+router.get('/:id', getAddressByID);
 
 //POST
 router.post('/',
-    [checkJWT,
-        check('address.addressname', 'AddressName is required').not().isEmpty().trim().escape(),
+    [addressLimitter,
         check('address.name', 'Name is required').not().isEmpty().trim().escape(),
         check('address.phone', 'Phone is required').not().isEmpty().trim().escape(),
         check('address.id', 'ID is required').not().isEmpty().trim().escape(),
@@ -39,7 +47,6 @@ router.post('/',
 //PUT
 router.put('/:id',
     [checkJWT,
-        check('address.addressname', 'AddressName is required').not().isEmpty().trim().escape(),
         check('address.name', 'Name is required').not().isEmpty().trim().escape(),
         check('address.phone', 'Phone is required').not().isEmpty().trim().escape(),
         check('address.id', 'ID is required').not().isEmpty().trim().escape(),

@@ -1,6 +1,7 @@
 //REQUIRED
 const Address = require('../models/address');
 const User = require('../models/user')
+const jwt = require('jsonwebtoken');
 
 //CODE
 
@@ -50,10 +51,17 @@ const getAddressByID = async (req, res) => {
 const createAddress = async (req, res) => {
 
     try {
-        //CHECK FOR LIMIT OF ADDRESSES
-        const userId = req.id;
-        const addresses = await Address.find({ 'user': userId })
+        //INFO NEEDED
+        const token = req.header('Authorization');
+        let addresses = new Array
+        let userId
+        if (!token || token !== "null") {
+            const infoToken = jwt.verify(token, process.env.JWT_SECRET);
+            userId = infoToken.id
+            addresses = await Address.find({ 'user': userId })
+        }
 
+        //MAX 3 ADDRESES
         if (addresses.length >= 3) {
             return res.status(404).json({
                 ok: false,
@@ -62,14 +70,19 @@ const createAddress = async (req, res) => {
         }
 
         //CREATE ADDRESS
-        let address = new Address(req.body);
-        address.user = userId
+        let address
+        address = new Address(req.body);
+
+        //IF USER
+        if (userId) {
+            address.user = userId || null
+
+            //UPDATING DEFAULT USER ADDRESS
+            await User.findByIdAndUpdate(userId, { address: address.id })
+        }
 
         //SAVE ADDRESS
         await address.save();
-
-        //UPDATING DEFAULT USER ADDRESS
-        await User.findByIdAndUpdate(req.id, { address: address.id })
 
         res.json({
             ok: true,
@@ -77,6 +90,7 @@ const createAddress = async (req, res) => {
         });
 
     } catch (error) {
+        console.log(error)
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"

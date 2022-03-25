@@ -54,13 +54,12 @@ router.put('/:id',
     ], updateProduct);
 
 //DELETE
-router.delete('/:id', deleteProduct);
+router.delete('/:id', [checkJWT, checkSuper], deleteProduct);
 
 //CHECKSTOCK
 router.get('/stock/:slug', checkStock)
 
-
-//CHECKSTOCK
+//UPDATE STOCK
 router.put('/stock/:id',
     [
         checkJWT,

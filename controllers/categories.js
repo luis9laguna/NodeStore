@@ -161,17 +161,39 @@ const updateCategory = async (req, res) => {
 
         //MOVING IMAGE CLOUDINARY
         const oldNameArray = images[0].split('/');
-        const oldnameId = oldNameArray[oldNameArray.length - 1];
+
+        //IF THE OLD PHOTO WAS ORGANIZED BEFORE
+        let finishedOldRoute
+        if (oldNameArray.length === 10) {
+            //GET THE OLD ROUTE ARRAY
+            const oldRouteArray = oldNameArray.slice(-3)
+            const wholeOldRoute = oldRouteArray.join('/')
+            const [oldRoute] = wholeOldRoute.split('.')
+            finishedOldRoute = oldRoute.replace(/%20/g, " ")
+        } else {
+            const wholeOldRoute = oldNameArray[oldNameArray.length - 1];
+            [finishedOldRoute] = wholeOldRoute.split('.')
+        }
+
+        //GETTING THE LAST PART OF PUBLIC ID
+        const oldnameId = oldNameArray[oldNameArray.length - 1]
         const [public_id] = oldnameId.split('.');
         const newPublic_id = `categories/${name}/${public_id}`
 
-        const { secure_url } = await cloudinary.uploader.rename(public_id, newPublic_id)
+        //JUST IN CASE THE NEXT VALIDATION DOESNT PASS
+        let finalImage = images[0]
+
+        //MOVING FOLDER
+        if (finishedOldRoute !== newPublic_id) {
+            const resp = await cloudinary.uploader.rename(finishedOldRoute, newPublic_id)
+            finalImage = resp.secure_url
+        }
 
         //NEWDATA
         const slug = slugify(name)
         let newCategory = req.body
         newCategory.slug = slug
-        newCategory.image = secure_url
+        newCategory.image = finalImage
 
         //UPDATE CATEGORY
         const categoryUpdate = await Category.findByIdAndUpdate(id, newCategory, { new: true });

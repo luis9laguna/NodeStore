@@ -6,15 +6,13 @@ const Address = Schema({
 
     user: {
         type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+        ref: 'User'
     },
 
     address: {
 
         addressname: {
-            type: String,
-            required: true
+            type: String
         },
         name: {
             type: String,

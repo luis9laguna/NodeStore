@@ -2,10 +2,11 @@
 const Order = require('../models/order');
 const OrderItem = require('../models/order-item');
 const Product = require('../models/product');
+const User = require('../models/user')
+const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const { sendEmail } = require('../helpers/send-email');
 const { sellInformation } = require('../helpers/SellInformation');
-
 
 //CODE
 
@@ -33,7 +34,7 @@ const getOrderByCode = async (req, res) => {
                 product: {
                     name: item.product.name,
                     price: item.product.price,
-                    image: item.product.image
+                    image: item.product.images[0]
                 },
                 quantity: item.quantity
             })
@@ -221,8 +222,19 @@ const completedInformation = async (req, res) => {
 const createOrder = async (req, res) => {
 
     try {
-        //ID USER
-        const idUser = req.id
+
+        //INFO USER AND ADDRESS
+        const token = req.header('Authorization');
+        let idUser
+        let address
+        if (!token || token !== "null") {
+            const infoToken = jwt.verify(token, process.env.JWT_SECRET);
+            idUser = infoToken.id
+            const user = await User.findById(idUser)
+            address = user.address
+        } else address = req.body.address
+
+        if (!address) return res.status(404).json({ ok: false, message: "Address is needed" })
 
         //CODE ITEMS ORDER
         const orderItemsInfo = await Promise.all(req.body.orderItems.map(async (orderItem) => {
@@ -272,12 +284,13 @@ const createOrder = async (req, res) => {
         });
 
         //ORDER
-        let order = new Order(req.body);
+        let order = new Order();
         order.code = uuidv4();
-        order.user = idUser;
-        order.orderItems = idItemsArray;
-        order.total = totalPrice;
+        order.user = idUser || null;
+        order.address = address
         order.totalCost = totalCost;
+        order.total = totalPrice;
+        order.orderItems = idItemsArray;
         orderAndShipping = totalPrice + 15;
 
         //SAVE ORDER

@@ -1,6 +1,7 @@
 //REQUIRED
 const { Router } = require('express');
 const { check } = require('express-validator');
+const rateLimit = require("express-rate-limit");
 
 //FUNCTIONS
 const {
@@ -15,6 +16,14 @@ const { checkJWT, checkAdmin } = require('../middlewares/check-jwt');
 
 //CODE
 const router = Router();
+const orderLimitter = rateLimit({
+    windowMs: 5 * 60 * 1000,
+    max: 5,
+    message: {
+        code: 429,
+        message: "Too many requests, wait for a moment"
+    }
+});
 
 ////GET ORDERS BY CODE
 router.post('/code/status', getOrderByCode);
@@ -36,11 +45,7 @@ router.get('/', [
 ], getAllOrders);
 
 //POST
-router.post('/',
-    [checkJWT,
-        check('address', 'Address is required').isMongoId(),
-        checkParams
-    ], createOrder);
+router.post('/', orderLimitter, createOrder);
 
 //PUT
 router.put('/:id',

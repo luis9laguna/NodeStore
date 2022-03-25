@@ -5,7 +5,7 @@ const Product = require('../models/product');
 const getAllProductsDashboard = async (req, res) => {
     try {
         //DB QUERY
-        const query = Product.find().populate('category', 'name status -_id')
+        const query = Product.find().populate('category', 'name status _id')
 
         //REQUESTS
         let sort = req.query.sort
@@ -18,9 +18,6 @@ const getAllProductsDashboard = async (req, res) => {
         let total = await query;
         total = total.length
         const pages = Math.ceil(total / pageSize)
-
-        //IF NO DATA
-        if (page > pages) return res.status(404).json({ status: 'false', message: "Page/Data not found" })
 
         //GETTING DATA FROM THE DB
         let data = await query.sort({ status: sort }).skip(skip).limit(pageSize).clone()
@@ -80,7 +77,7 @@ const getProductsByCategoryDashboard = async (req, res) => {
         }
 
         //DB QUERY
-        const query = Product.find({ "category": category._id }).populate('category', 'name status -_id')
+        const query = Product.find({ "category": category._id }).populate('category', 'name status _id')
 
         //REQUESTS
         let sort = req.query.sort
@@ -93,9 +90,6 @@ const getProductsByCategoryDashboard = async (req, res) => {
         let total = await query;
         total = total.length
         const pages = Math.ceil(total / pageSize)
-
-        //IF NO DATA
-        if (page > pages) return res.status(404).json({ status: 'false', message: "Page/Data not found" })
 
         //GETTING DATA FROM THE DB
         let data = await query.sort({ status: sort }).skip(skip).limit(pageSize).clone()
@@ -126,7 +120,7 @@ const getSearchDashboard = async (req, res) => {
 
         //DB QUERY
         const query = Product.find({ $or: [{ name: regex }, { description: regex }] })
-            .populate('category', 'name status -_id')
+            .populate('category', 'name status _id')
 
         //REQUESTS
         let sort = req.query.sort
@@ -139,9 +133,6 @@ const getSearchDashboard = async (req, res) => {
         let total = await query;
         total = total.length
         const pages = Math.ceil(total / pageSize)
-
-        //IF NO DATA
-        if (page > pages) return res.status(404).json({ status: 'false', message: "Page/Data not found" })
 
         //GETTING DATA FROM THE DB
         let data = await query.sort({ status: sort }).skip(skip).limit(pageSize).clone()

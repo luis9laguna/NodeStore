@@ -57,9 +57,6 @@ const getAllUsers = async (req, res) => {
         total = total.length
         const pages = Math.ceil(total / pageSize)
 
-        //IF NO DATA
-        if (page > pages) return res.status(404).json({ status: 'false', message: "Page/Data not found" })
-
         //GETTING DATA FROM THE DB
         let data = await query.skip(skip).limit(pageSize).clone()
 
