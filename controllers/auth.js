@@ -61,7 +61,7 @@ const googleSignIn = async (req, res) => {
             // CREATE USER
             const data = {
                 name: given_name,
-                surname: family_name,
+                lastname: family_name,
                 email,
                 password: 'none',
                 google: true,

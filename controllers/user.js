@@ -27,7 +27,7 @@ const getUser = async (req, res) => {
                 ref: userDB.ucode,
                 role: userDB.role,
                 email: userDB.email,
-                surname: userDB.surname,
+                lastname: userDB.lastname,
                 address: userDB.address
             },
         });
@@ -69,7 +69,6 @@ const getAllUsers = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error)
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"

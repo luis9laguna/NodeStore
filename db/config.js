@@ -11,7 +11,6 @@ const dbConnection = () => {
         })
     }
     catch (error) {
-        console.log(error)
         throw new Error('Database connection error');
     }
 }
