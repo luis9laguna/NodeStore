@@ -86,7 +86,10 @@ const giveLikeAndDislike = async (req, res) => {
 
         res.json({
             ok: true,
-            product
+            product: {
+                _id: product._id,
+                likes: product.likes
+            }
         });
     } catch (error) {
         res.status(500).json({
@@ -113,7 +116,7 @@ const getProductsWithMoreLikes = async (req, res) => {
                 }
             },
             { $match: { "category.status": true, "status": true } },
-            { $project: { "cost": 0 } },
+            { $project: { "cost": 0, } },
             { $sort: { likes: -1 } },
             { $limit: limit }
         ])
@@ -124,7 +127,6 @@ const getProductsWithMoreLikes = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error)
         res.status(500).json({
             ok: false,
             message: 'Unexpected Error'

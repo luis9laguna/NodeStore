@@ -6,7 +6,7 @@ const User = require('../models/user')
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const { sendEmail } = require('../helpers/send-email');
-const { sellInformation } = require('../helpers/SellInformation');
+const { sellInformation } = require('../helpers/sellInformation');
 
 //CODE
 
@@ -14,7 +14,7 @@ const { sellInformation } = require('../helpers/SellInformation');
 const getOrderByCode = async (req, res) => {
 
     try {
-        const code = req.body.code;
+        const code = req.params.code;
         const orderDB = await Order.findOne({ code }).populate({
             path: 'orderItems',
             populate: { path: 'product' }
@@ -117,11 +117,12 @@ const getAllOrders = async (req, res) => {
         //GETTING PAGINATION AND DATA
         const skip = (page - 1) * pageSize;
         let total = await query
+
         total = total.length
         const pages = Math.ceil(total / pageSize)
 
         //IF NO DATA
-        if (page > pages) return res.status(404).json({ status: 'false', message: "Page/Data not found" })
+        if (page > pages) return res.status(200).json({ status: 'ok', message: "Page/Data not found" })
 
         //GETTING DATA FROM THE DB
         let data = await query.sort({ 'updatedAt': -1 }).skip(skip).limit(pageSize).clone()
@@ -224,20 +225,25 @@ const createOrder = async (req, res) => {
     try {
 
         //INFO USER AND ADDRESS
-        const token = req.header('Authorization');
-        let idUser
-        let address
-        if (!token || token !== "null") {
-            const infoToken = jwt.verify(token, process.env.JWT_SECRET);
-            idUser = infoToken.id
-            const user = await User.findById(idUser)
-            address = user.address
-        } else address = req.body.address
+        const token = req.cookies.token;
+        let userId;
+
+        const { address, orderItems } = req.body
+        if (token) {
+            userId = jwt.verify(token, process.env.JWT_SECRET).id;
+            const user = await User.findById(userId)
+            if (!user) {
+                return res.status(404).json({
+                    ok: false,
+                    message: "User not found"
+                });
+            }
+        }
 
         if (!address) return res.status(404).json({ ok: false, message: "Address is needed" })
 
         //CODE ITEMS ORDER
-        const orderItemsInfo = await Promise.all(req.body.orderItems.map(async (orderItem) => {
+        const orderItemsInfo = await Promise.all(orderItems.map(async (orderItem) => {
 
             //DECREASE THE STOCK 
             let productDB = await Product.findById(orderItem.product);
@@ -286,7 +292,7 @@ const createOrder = async (req, res) => {
         //ORDER
         let order = new Order();
         order.code = uuidv4();
-        order.user = idUser || null;
+        order.user = userId || null;
         order.address = address
         order.totalCost = totalCost;
         order.total = totalPrice;

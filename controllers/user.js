@@ -27,7 +27,7 @@ const getUser = async (req, res) => {
                 ref: userDB.ucode,
                 role: userDB.role,
                 email: userDB.email,
-                surname: userDB.surname,
+                lastname: userDB.lastname,
                 address: userDB.address
             },
         });
@@ -69,7 +69,6 @@ const getAllUsers = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error)
         res.status(500).json({
             ok: false,
             message: "Unexpected Error"
@@ -81,7 +80,7 @@ const getAllUsers = async (req, res) => {
 const createUser = async (req, res) => {
 
     try {
-        const { email, password } = req.body;
+        const { email, password, name, lastname } = req.body;
         const existEmail = await User.findOne({ email });
 
         //VERIFY EMAIL
@@ -97,6 +96,10 @@ const createUser = async (req, res) => {
         //ENCRYPT
         const salt = bcrypt.genSaltSync();
         user.password = bcrypt.hashSync(password, salt);
+
+        //LOSERCASE NAME AND LASTNAME
+        user.name = name.toLowerCase();
+        user.lastname = lastname.toLowerCase();
 
         //SAVE USER
         await user.save();

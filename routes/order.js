@@ -25,8 +25,8 @@ const orderLimitter = rateLimit({
     }
 });
 
-////GET ORDERS BY CODE
-router.post('/code/status', getOrderByCode);
+//GET ORDERS BY CODE
+router.get('/code/:code', getOrderByCode);
 
 //GET ORDERS BY USER
 router.get('/user/all', checkJWT, getOrdersByUser);

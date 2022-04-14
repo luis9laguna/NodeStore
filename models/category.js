@@ -12,7 +12,7 @@ const CategorySchema = Schema(
         image: {
             type: String,
             required: true,
-            default: 'https://res.cloudinary.com/faisca/image/upload/v1646973658/default/default_vzrr7n.jpg'
+            default: 'https://res.cloudinary.com/bestecommerce/image/upload/v1668298542/default/default/360_F_462936689_BpEEcxfgMuYPfTaIAOC1tCDurmsno7Sp_llrbwu.jpg'
         },
         slug: {
             type: String,

@@ -51,38 +51,32 @@ const getAddressByID = async (req, res) => {
 const createAddress = async (req, res) => {
 
     try {
-        //INFO NEEDED
-        const token = req.header('Authorization');
-        let addresses = new Array
-        let userId
-        if (!token || token !== "null") {
-            const infoToken = jwt.verify(token, process.env.JWT_SECRET);
-            userId = infoToken.id
-            addresses = await Address.find({ 'user': userId })
+        const token = req.cookies.token;
+        let userId;
+
+        if (token) {
+            userId = jwt.verify(token, process.env.JWT_SECRET).id;
+            const addresses = await Address.find({ 'user': userId }).count();
+
+            if (addresses > 2) {
+                return res.status(400).json({
+                    ok: false,
+                    message: "You can't create more than 3 addresses per user"
+                });
+            }
         }
 
-        //MAX 3 ADDRESES
-        if (addresses.length >= 3) {
-            return res.status(404).json({
-                ok: false,
-                message: "You can't create more than 3 addresses per user"
-            });
-        }
-
-        //CREATE ADDRESS
         let address
         address = new Address(req.body);
-
-        //IF USER
-        if (userId) {
-            address.user = userId || null
-
-            //UPDATING DEFAULT USER ADDRESS
-            await User.findByIdAndUpdate(userId, { address: address.id })
-        }
+        address.user = userId || null
 
         //SAVE ADDRESS
         await address.save();
+
+        //IF USER
+        if (userId) {
+            await User.findByIdAndUpdate(userId, { address: address.id })
+        }
 
         res.json({
             ok: true,
@@ -90,7 +84,6 @@ const createAddress = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error)
         res.status(500).json({
             ok: false,
             message: "Error Unexpected, check logs"
@@ -104,6 +97,7 @@ const createAddress = async (req, res) => {
 const updateAddress = async (req, res) => {
 
     try {
+
         //GET DATA FROM THE DB
         const id = req.params.id;
         const addressDB = await Address.findById(id);

@@ -11,7 +11,7 @@ const Address = Schema({
 
     address: {
 
-        addressname: {
+        labelAddress: {
             type: String
         },
         name: {
@@ -22,19 +22,19 @@ const Address = Schema({
             type: Number,
             required: true
         },
-        id: {
+        rut: {
             type: String,
             required: true
         },
-        state: {
+        region: {
             type: String,
             required: true
         },
-        city: {
+        provincia: {
             type: String,
             required: true
         },
-        province: {
+        comuna: {
             type: String,
             required: true
         },
@@ -42,12 +42,15 @@ const Address = Schema({
             type: String,
             required: true
         },
-        numstreet: {
+        numStreet: {
             type: Number,
             required: true
         },
-        apartment: {
+        infoHome: {
             type: Number
+        },
+        extraInfo: {
+            type: String
         }
     }
 }

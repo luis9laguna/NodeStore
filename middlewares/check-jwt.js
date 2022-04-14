@@ -1,6 +1,5 @@
 //REQUIRED
 const jwt = require('jsonwebtoken');
-
 //CODE
 
 //VERIFY JWT USER
@@ -8,6 +7,7 @@ const checkJWT = (req, res, next) => {
 
     try {
 
+        // const token = req.cookies.token;
         const token = req.header('Authorization');
 
         //VERIFY TOKEN

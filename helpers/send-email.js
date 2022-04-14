@@ -17,7 +17,7 @@ const sendEmail = async (email, subject, text) => {
             from: process.env.EMAIL_ADDRESS,
             to: email,
             subject,
-            template: 'index'
+            text
         });
 
         console.log("email sent sucessfully");

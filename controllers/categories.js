@@ -111,20 +111,24 @@ const createCategory = async (req, res) => {
 
         //CATEGORY
         let category = new Category(req.body);
+        const nameLower = name.toLowerCase()
+        const cleanName = nameLower.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
 
+        let secure_url;
         //MOVING IMAGE CLOUDINARY
-        const oldNameArray = images[0].split('/');
-        const oldnameId = oldNameArray[oldNameArray.length - 1];
-        const [public_id] = oldnameId.split('.');
-        const newPublic_id = `categories/${name}/${public_id}`
+        if (images.length > 0) {
+            const oldNameArray = images[0].split('/');
+            const oldnameId = oldNameArray[oldNameArray.length - 1];
+            const [public_id] = oldnameId.split('.');
+            const newPublic_id = `categories/${cleanName}/${public_id}`
 
-        const { secure_url } = await cloudinary.uploader.rename(public_id, newPublic_id)
+            const resp = await cloudinary.uploader.rename(public_id, newPublic_id)
+            secure_url = resp.secure_url
+        }
 
-        //SLUG
-        const slug = slugify(name)
-        category.name = name.toLowerCase()
-        category.slug = slug
-        category.image = secure_url
+        category.slug = slugify(cleanName)
+        category.name = nameLower
+        category.image = images.length > 0 ? secure_url : 'https://res.cloudinary.com/bestecommerce/image/upload/v1668298542/default/default/360_F_462936689_BpEEcxfgMuYPfTaIAOC1tCDurmsno7Sp_llrbwu.jpg'
 
         // SAVE CATEGORY
         await category.save();
@@ -135,6 +139,7 @@ const createCategory = async (req, res) => {
         })
 
     } catch (error) {
+        console.log(error)
         res.status(500).json({
             ok: false,
             message: 'Unexpected Error'
@@ -150,6 +155,7 @@ const updateCategory = async (req, res) => {
         const id = req.params.id;
         const { name, images } = req.body;
         const category = await Category.findById(id);
+        const imgDefault = 'https://res.cloudinary.com/bestecommerce/image/upload/v1668298542/default/default/360_F_462936689_BpEEcxfgMuYPfTaIAOC1tCDurmsno7Sp_llrbwu.jpg'
 
         //VERIFY CATEGORY
         if (!category) {
@@ -159,41 +165,46 @@ const updateCategory = async (req, res) => {
             });
         }
 
-        //MOVING IMAGE CLOUDINARY
-        const oldNameArray = images[0].split('/');
+        let secure_url;
+        const nameLower = name.toLowerCase()
+        const cleanName = nameLower.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        if (images.length > 0 && imgDefault !== images[0]) {
 
-        //IF THE OLD PHOTO WAS ORGANIZED BEFORE
-        let finishedOldRoute
-        if (oldNameArray.length === 10) {
-            //GET THE OLD ROUTE ARRAY
-            const oldRouteArray = oldNameArray.slice(-3)
-            const wholeOldRoute = oldRouteArray.join('/')
-            const [oldRoute] = wholeOldRoute.split('.')
-            finishedOldRoute = oldRoute.replace(/%20/g, " ")
-        } else {
-            const wholeOldRoute = oldNameArray[oldNameArray.length - 1];
-            [finishedOldRoute] = wholeOldRoute.split('.')
-        }
+            //MOVING IMAGE CLOUDINARY
+            const oldNameArray = images[0].split('/');
 
-        //GETTING THE LAST PART OF PUBLIC ID
-        const oldnameId = oldNameArray[oldNameArray.length - 1]
-        const [public_id] = oldnameId.split('.');
-        const newPublic_id = `categories/${name}/${public_id}`
+            //IF THE OLD PHOTO WAS ORGANIZED BEFORE
+            let finishedOldRoute
+            if (oldNameArray.length === 10) {
+                //GET THE OLD ROUTE ARRAY
+                const oldRouteArray = oldNameArray.slice(-3)
+                const wholeOldRoute = oldRouteArray.join('/')
+                const [oldRoute] = wholeOldRoute.split('.')
+                finishedOldRoute = oldRoute.replace(/%20/g, " ")
+            } else {
+                const wholeOldRoute = oldNameArray[oldNameArray.length - 1];
+                [finishedOldRoute] = wholeOldRoute.split('.')
+            }
 
-        //JUST IN CASE THE NEXT VALIDATION DOESNT PASS
-        let finalImage = images[0]
+            //GETTING THE LAST PART OF PUBLIC ID
+            const oldnameId = oldNameArray[oldNameArray.length - 1]
+            const [public_id] = oldnameId.split('.');
+            const newPublic_id = `categories/${cleanName}/${public_id}`
 
-        //MOVING FOLDER
-        if (finishedOldRoute !== newPublic_id) {
-            const resp = await cloudinary.uploader.rename(finishedOldRoute, newPublic_id)
-            finalImage = resp.secure_url
+            //MOVING FOLDER
+            if (finishedOldRoute !== newPublic_id) {
+                const resp = await cloudinary.uploader.rename(finishedOldRoute, newPublic_id)
+                secure_url = resp.secure_url
+            }
+
         }
 
         //NEWDATA
-        const slug = slugify(name)
         let newCategory = req.body
-        newCategory.slug = slug
-        newCategory.image = finalImage
+        newCategory.slug = slugify(cleanName)
+        newCategory.name = nameLower
+        newCategory.image = images.length === 0 || imgDefault === images[0] ? imgDefault : secure_url
+
 
         //UPDATE CATEGORY
         const categoryUpdate = await Category.findByIdAndUpdate(id, newCategory, { new: true });
@@ -204,6 +215,7 @@ const updateCategory = async (req, res) => {
         });
 
     } catch (error) {
+        console.log(error)
         res.status(500).json({
             ok: false,
             message: 'Unexpected Error'

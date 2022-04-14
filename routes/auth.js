@@ -18,7 +18,7 @@ const router = Router();
 //LIMIT OF REQUEST
 const loginLimitter = rateLimit({
     windowMs: 3 * 60 * 1000,
-    max: 5,
+    max: 1516315,
     message: {
         code: 429,
         message: "Too many tries to enter to this account wait for a moment"
@@ -70,7 +70,6 @@ router.post('/password-reset',
         checkParams
     ],
     forgetEmail);
-
 
 //RESET PASSWORD
 router.put('/password-reset/:token',

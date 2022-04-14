@@ -10,7 +10,7 @@ const UserSchema = Schema(
             type: String,
             required: true
         },
-        surname: {
+        lastname: {
             type: String,
             required: true
         },
@@ -36,7 +36,7 @@ const UserSchema = Schema(
         },
         address: {
             type: Schema.Types.ObjectId,
-            ref: 'address'
+            ref: 'Address'
         },
         google: {
             type: Boolean,

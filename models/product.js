@@ -26,6 +26,11 @@ const ProductSchema = Schema(
             type: Number,
             required: true
         },
+        sale: {
+            type: Number,
+            required: true,
+            default: 0
+        },
         stock: {
             type: Number,
             required: true

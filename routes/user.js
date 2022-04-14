@@ -20,7 +20,6 @@ const registerLimitter = rateLimit({
 });
 
 //GET USER
-
 router.get('/', checkJWT, getUser);
 
 //GET ALL
@@ -31,7 +30,7 @@ router.post('/',
     [
         registerLimitter,
         check('name', 'Name is required').not().isEmpty().trim().escape(),
-        check('surname', 'Name is required').not().isEmpty().trim().escape(),
+        check('lastname', 'Lastname is required').not().isEmpty().trim().escape(),
         check('password', 'Password is required').not().isEmpty().trim().escape().isLength({ min: 6 }),
         check('email', 'Email is required').isEmail().normalizeEmail(),
         checkParams
@@ -39,11 +38,11 @@ router.post('/',
     createUser);
 
 //PUT
-router.put('/update',
+router.put('/',
     [
         checkJWT,
         check('name', 'Name is required').not().isEmpty().trim().escape(),
-        check('surname', 'Surname is required').not().isEmpty().trim().escape(),
+        check('lastname', 'Lastname is required').not().isEmpty().trim().escape(),
         checkParams
     ],
     updateUser);

@@ -9,7 +9,6 @@ const { sendEmail } = require('../helpers/send-email');
 const { v4: uuidv4 } = require('uuid');
 
 
-//CODE
 const login = async (req, res) => {
 
     try {
@@ -28,6 +27,16 @@ const login = async (req, res) => {
         const expire = '12h'
         //GENERATE TOKEN
         const token = await generatorJWT(userDB.id, userDB.role, expire);
+
+
+        res.cookie(`tokenq`, token, {
+            maxAge: 5000,
+            // expires works the same as the maxAge
+            expires: new Date('01 12 2021'),
+            secure: true,
+            httpOnly: true,
+            sameSite: 'None'
+        });
 
         res.json({
             ok: true,
@@ -50,7 +59,6 @@ const login = async (req, res) => {
 const googleSignIn = async (req, res) => {
 
     const tokenGoogle = req.body.token;
-
     try {
 
         const { given_name, family_name, email } = await googleVerify(tokenGoogle);
@@ -61,7 +69,7 @@ const googleSignIn = async (req, res) => {
             // CREATE USER
             const data = {
                 name: given_name,
-                surname: family_name,
+                lastname: family_name,
                 email,
                 password: 'none',
                 google: true,
@@ -103,8 +111,6 @@ const googleSignIn = async (req, res) => {
 
 }
 
-
-//CHANGE PASSWORD WITH LOGIN
 const changePassword = async (req, res) => {
 
     try {
@@ -143,11 +149,11 @@ const changePassword = async (req, res) => {
     }
 }
 
-//PETITION RESET PASSWORD
 const forgetEmail = async (req, res) => {
 
     try {
         const email = req.body.email;
+
 
         //VALIDATION OF USER
         const user = await User.findOne({ email });
@@ -171,7 +177,7 @@ const forgetEmail = async (req, res) => {
         //CODE
         const expire = '60m';
         const token = await generatorJWT(id, role, expire);
-        const verificationLink = `http://localhost:3000/auth/password-reset/${token}`
+        const verificationLink = `http://localhost:3000/recoveryAccount/${token}`
         const subject = `Password Reset Request For ${name}`;
         const text = `Hi ${name}, here is your link to change the password ${verificationLink}`;
         const tokenForgot = new TokenForgot({ user: id, token });
@@ -186,7 +192,7 @@ const forgetEmail = async (req, res) => {
         await tokenForgot.save();
 
         //SEND EMAIL
-        // await sendEmail(email, subject, text);
+        await sendEmail(email, subject, text);
 
         res.json({
             ok: true,
@@ -201,8 +207,6 @@ const forgetEmail = async (req, res) => {
     }
 }
 
-
-//RESET PASSWORD
 const resetPassword = async (req, res) => {
 
     try {

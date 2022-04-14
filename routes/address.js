@@ -17,7 +17,7 @@ const { checkJWT } = require('../middlewares/check-jwt');
 const router = Router();
 const addressLimitter = rateLimit({
     windowMs: 5 * 60 * 1000,
-    max: 5,
+    max: 5000,
     message: {
         code: 429,
         message: "Too many requests, wait for a moment"
@@ -35,12 +35,12 @@ router.post('/',
     [addressLimitter,
         check('address.name', 'Name is required').not().isEmpty().trim().escape(),
         check('address.phone', 'Phone is required').not().isEmpty().trim().escape(),
-        check('address.id', 'ID is required').not().isEmpty().trim().escape(),
-        check('address.state', 'State is required').not().isEmpty().trim().escape(),
-        check('address.city', 'City is required').not().isEmpty().trim().escape(),
-        check('address.province', 'Province is required').not().isEmpty().trim().escape(),
+        check('address.rut', 'RUT is required').not().isEmpty().trim().escape(),
+        check('address.region', 'Region is required').not().isEmpty().trim().escape(),
+        check('address.provincia', 'Provincia is required').not().isEmpty().trim().escape(),
+        check('address.comuna', 'Comuna is required').not().isEmpty().trim().escape(),
         check('address.street', 'Street is required').not().isEmpty().trim().escape(),
-        check('address.numstreet', 'Numstreet is required').not().isEmpty().trim().escape(),
+        check('address.numStreet', 'NumStreet is required').not().isEmpty().trim().escape(),
         checkParams
     ], createAddress);
 
@@ -49,12 +49,12 @@ router.put('/:id',
     [checkJWT,
         check('address.name', 'Name is required').not().isEmpty().trim().escape(),
         check('address.phone', 'Phone is required').not().isEmpty().trim().escape(),
-        check('address.id', 'ID is required').not().isEmpty().trim().escape(),
-        check('address.state', 'State is required').not().isEmpty().trim().escape(),
-        check('address.city', 'City is required').not().isEmpty().trim().escape(),
-        check('address.province', 'Province is required').not().isEmpty().trim().escape(),
+        check('address.rut', 'RUT is required').not().isEmpty().trim().escape(),
+        check('address.region', 'Region is required').not().isEmpty().trim().escape(),
+        check('address.provincia', 'Provincia is required').not().isEmpty().trim().escape(),
+        check('address.comuna', 'Comuna is required').not().isEmpty().trim().escape(),
         check('address.street', 'Street is required').not().isEmpty().trim().escape(),
-        check('address.numstreet', 'Numstreet is required').not().isEmpty().trim().escape(),
+        check('address.numStreet', 'NumStreet is required').not().isEmpty().trim().escape(),
         checkParams
     ], updateAddress);
 

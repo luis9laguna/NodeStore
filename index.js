@@ -3,8 +3,8 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser')
-
+const fileUpload = require('express-fileupload');
+const cookieParser = require('cookie-parser')
 const { dbConnection } = require('./db/config');
 
 //SERVER
@@ -12,18 +12,24 @@ const app = express();
 
 //CORS
 const optionsCors = {
-    origin: process.env.FRONTEND_URL
+    origin: process.env.FRONTEND_URL,
+    credentials: true
 }
 app.use(cors(optionsCors));
+app.use(cookieParser())
 
 //READ BODY
 app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+
+//FILEUPLOAD
+app.use(fileUpload({
+    useTempFiles: true,
+    tempFileDir: '/tmp/',
+    createParentPath: true
+}));
 
 //DATABASE
 dbConnection();
-
 
 //ROUTES
 app.use('/api/category', require('./routes/categories'));
@@ -41,6 +47,6 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 
 
 //LISTEN
-app.listen(process.env.PORT, () => {
+app.listen(process.env.PORT || 4000, () => {
     console.log('Server in ' + process.env.PORT)
 })

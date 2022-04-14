@@ -1,6 +1,7 @@
 //REQUIRED
 const { sortProducts } = require('../helpers/sort-products');
 const Product = require('../models/product');
+const OrderItems = require('../models/order-item');
 const slugify = require('slugify');
 const cloudinary = require('cloudinary').v2
 //CODE
@@ -138,6 +139,7 @@ const createProduct = async (req, res) => {
         //PRODUCT
         let product = new Product(req.body);
         const nameLower = name.toLowerCase()
+        const cleanName = nameLower.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
 
         //MOVING IMAGE CLOUDINARY
         let newImages = new Array
@@ -145,15 +147,14 @@ const createProduct = async (req, res) => {
             const oldNameArray = image.split('/');
             const oldnameId = oldNameArray[oldNameArray.length - 1];
             const [public_id] = oldnameId.split('.');
-            const newPublic_id = `products/${nameLower}/${public_id}`
+            const newPublic_id = `products/${cleanName}/${public_id}`
             const { secure_url } = await cloudinary.uploader.rename(public_id, newPublic_id)
             newImages.push(secure_url)
         }
-        if (newImages.length === 0) newImages.push('https://res.cloudinary.com/faisca/image/upload/v1646973658/default/default_vzrr7n.jpg')
+        if (newImages.length === 0) newImages.push('https://res.cloudinary.com/bestecommerce/image/upload/v1668298542/default/default/360_F_462936689_BpEEcxfgMuYPfTaIAOC1tCDurmsno7Sp_llrbwu.jpg')
 
         //SLUG
-        const slug = slugify(name)
-        product.slug = slug
+        product.slug = slugify(cleanName)
         product.name = nameLower
         product.images = newImages
 
@@ -181,6 +182,8 @@ const updateProduct = async (req, res) => {
         const id = req.params.id;
         const { name, images } = req.body;
         const productDB = await Product.findById(id);
+        const imgDefault = 'https://res.cloudinary.com/bestecommerce/image/upload/v1668298542/default/default/360_F_462936689_BpEEcxfgMuYPfTaIAOC1tCDurmsno7Sp_llrbwu.jpg'
+
 
         //VERIFY PRODUCT
         if (!productDB) {
@@ -192,44 +195,45 @@ const updateProduct = async (req, res) => {
 
         //NEWDATA
         const nameLower = name.toLowerCase()
-        const slug = slugify(nameLower)
+        const cleanName = nameLower.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
 
         //MOVING IMAGE CLOUDINARY
         let newImages = new Array
         for (const image of images) {
-            const oldNameArray = image.split('/');
+            if (imgDefault !== image) {
+                const oldNameArray = image.split('/');
 
-            //IF THE OLD PHOTO WAS ORGANIZED BEFORE
-            let finishedOldRoute
-            if (oldNameArray.length === 10) {
-                //GET THE OLD ROUTE ARRAY
-                const oldRouteArray = oldNameArray.slice(-3)
-                const wholeOldRoute = oldRouteArray.join('/')
-                const [oldRoute] = wholeOldRoute.split('.')
-                finishedOldRoute = oldRoute.replace(/%20/g, " ")
-            } else {
-                const wholeOldRoute = oldNameArray[oldNameArray.length - 1];
-                [finishedOldRoute] = wholeOldRoute.split('.')
+                //IF THE OLD PHOTO WAS ORGANIZED BEFORE
+                let finishedOldRoute
+                if (oldNameArray.length === 10) {
+                    //GET THE OLD ROUTE ARRAY
+                    const oldRouteArray = oldNameArray.slice(-3)
+                    const wholeOldRoute = oldRouteArray.join('/')
+                    const [oldRoute] = wholeOldRoute.split('.')
+                    finishedOldRoute = oldRoute.replace(/%20/g, " ")
+                } else {
+                    const wholeOldRoute = oldNameArray[oldNameArray.length - 1];
+                    [finishedOldRoute] = wholeOldRoute.split('.')
+                }
+                //GETTING THE LAST PART OF PUBLIC ID
+                const oldnameId = oldNameArray[oldNameArray.length - 1]
+                const [public_id] = oldnameId.split('.');
+                const newPublic_id = `products/${cleanName}/${public_id}`
+
+                //MOVING FOLDER
+                if (finishedOldRoute !== newPublic_id) {
+                    const { secure_url } = await cloudinary.uploader.rename(finishedOldRoute, newPublic_id)
+                    newImages.push(secure_url)
+                } else {
+                    newImages.push(image)
+                }
             }
-
-            //GETTING THE LAST PART OF PUBLIC ID
-            const oldnameId = oldNameArray[oldNameArray.length - 1]
-            const [public_id] = oldnameId.split('.');
-            const newPublic_id = `products/${nameLower}/${public_id}`
-
-            //MOVING FOLDER
-            if (finishedOldRoute !== newPublic_id) {
-                const { secure_url } = await cloudinary.uploader.rename(finishedOldRoute, newPublic_id)
-                newImages.push(secure_url)
-            } else {
-                newImages.push(image)
-            }
-
         }
-        if (newImages.length === 0) newImages.push('https://res.cloudinary.com/faisca/image/upload/v1646973658/default/default_vzrr7n.jpg')
+        if (newImages.length === 0) newImages.push(imgDefault)
 
         let newProduct = req.body
-        newProduct.slug = slug
+        newProduct.slug = slugify(cleanName)
+        newProduct.name = nameLower
         newProduct.images = newImages
 
         //UPDATE PRODUCT
@@ -241,6 +245,7 @@ const updateProduct = async (req, res) => {
         });
 
     } catch (error) {
+        console.log(error)
         res.status(500).json({
             ok: false,
             message: 'Unexpected Error'
@@ -263,8 +268,14 @@ const deleteProduct = async (req, res) => {
             });
         }
 
-        //DELETE CATEGORY
-        await Product.findByIdAndUpdate(id, { status: false }, { new: true });
+        const productInOrder = await OrderItems.find({ "product": id });
+
+        if (productInOrder) {
+            await Product.findByIdAndRemove(id);
+        } else {
+            await Product.findByIdAndUpdate(id, { status: false }, { new: true });
+        }
+
 
         res.json({
             ok: true,
@@ -284,9 +295,9 @@ const deleteProduct = async (req, res) => {
 const checkStock = async (req, res) => {
 
     try {
-        const slug = req.params.slug;
-        const productDB = await Product.findOne({ 'slug': slug, 'status': true })
+        const id = req.params.id;
 
+        const productDB = await Product.findById(id)
         if (!productDB) {
             return res.status(404).json({
                 ok: false,
