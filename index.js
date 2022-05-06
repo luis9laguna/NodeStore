@@ -46,6 +46,6 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 
 
 //LISTEN
-app.listen(process.env.PORT || 4000, () => {
+app.listen(process.env.PORT, () => {
     console.log('Server in ' + process.env.PORT)
 })
