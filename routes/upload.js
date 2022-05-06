@@ -1,6 +1,5 @@
 //REQUIRED
 const { Router } = require('express');
-const fileUpload = require('express-fileupload');
 
 //FUNCTIONS
 const { uploadImage, deleteImage } = require('../controllers/upload');
@@ -10,11 +9,6 @@ const { checkJWT, checkSuper } = require('../middlewares/check-jwt');
 
 //CODE
 const router = Router();
-router.use(fileUpload({
-    useTempFiles: true,
-    tempFileDir: '/tmp/',
-    createParentPath: true
-}));
 
 //ROUTES
 

@@ -3,7 +3,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser')
+const fileUpload = require('express-fileupload');
 
 const { dbConnection } = require('./db/config');
 
@@ -18,8 +18,13 @@ app.use(cors(optionsCors));
 
 //READ BODY
 app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+
+//FILEUPLOAD
+app.use(fileUpload({
+    useTempFiles: true,
+    tempFileDir: '/tmp/',
+    createParentPath: true
+}));
 
 //DATABASE
 dbConnection();
