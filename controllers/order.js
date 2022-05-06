@@ -6,7 +6,7 @@ const User = require('../models/user')
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const { sendEmail } = require('../helpers/send-email');
-const { sellInformation } = require('../helpers/SellInformation');
+const { sellInformation } = require('../helpers/sellInformation');
 
 //CODE
 
