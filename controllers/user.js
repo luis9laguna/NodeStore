@@ -80,7 +80,7 @@ const getAllUsers = async (req, res) => {
 const createUser = async (req, res) => {
 
     try {
-        const { email, password } = req.body;
+        const { email, password, name, lastname } = req.body;
         const existEmail = await User.findOne({ email });
 
         //VERIFY EMAIL
@@ -96,6 +96,10 @@ const createUser = async (req, res) => {
         //ENCRYPT
         const salt = bcrypt.genSaltSync();
         user.password = bcrypt.hashSync(password, salt);
+
+        //LOSERCASE NAME AND LASTNAME
+        user.name = name.toLowerCase();
+        user.lastname = lastname.toLowerCase();
 
         //SAVE USER
         await user.save();

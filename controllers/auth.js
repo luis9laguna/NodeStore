@@ -50,6 +50,7 @@ const login = async (req, res) => {
 const googleSignIn = async (req, res) => {
 
     const tokenGoogle = req.body.token;
+    console.log(tokenGoogle)
 
     try {
 
@@ -83,6 +84,8 @@ const googleSignIn = async (req, res) => {
         const role = "USER_ROLE"
         // JWT
         const token = await generatorJWT(user.id, role, expire);
+
+        console.log('asdads')
 
         res.json({
             message: 'User logged',

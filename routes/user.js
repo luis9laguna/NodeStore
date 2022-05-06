@@ -20,7 +20,6 @@ const registerLimitter = rateLimit({
 });
 
 //GET USER
-
 router.get('/', checkJWT, getUser);
 
 //GET ALL
